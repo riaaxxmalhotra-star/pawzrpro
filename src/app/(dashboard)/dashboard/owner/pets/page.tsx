@@ -11,6 +11,7 @@ import { Modal, ModalFooter } from '@/components/ui/Modal'
 import { Badge } from '@/components/ui/Badge'
 import { LoadingSpinner } from '@/components/ui/Loading'
 import { useToast } from '@/components/ui/Toast'
+import { ImageUpload } from '@/components/ui/ImageUpload'
 
 interface Pet {
   id: string
@@ -51,6 +52,7 @@ export default function PetsPage() {
     breed: '',
     age: '',
     weight: '',
+    photo: '',
     medicalNotes: '',
     behaviorNotes: '',
     vaccinated: false,
@@ -84,6 +86,7 @@ export default function PetsPage() {
         breed: pet.breed || '',
         age: pet.age?.toString() || '',
         weight: pet.weight?.toString() || '',
+        photo: pet.photo || '',
         medicalNotes: pet.medicalNotes || '',
         behaviorNotes: pet.behaviorNotes || '',
         vaccinated: pet.vaccinated,
@@ -97,6 +100,7 @@ export default function PetsPage() {
         breed: '',
         age: '',
         weight: '',
+        photo: '',
         medicalNotes: '',
         behaviorNotes: '',
         vaccinated: false,
@@ -243,6 +247,12 @@ export default function PetsPage() {
         size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
+          <ImageUpload
+            currentImage={formData.photo || null}
+            onUpload={(url) => setFormData({ ...formData, photo: url })}
+            label="Pet Photo"
+          />
+
           <div className="grid sm:grid-cols-2 gap-4">
             <Input
               label="Pet Name"

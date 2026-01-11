@@ -30,6 +30,8 @@ model User {
   verified      Boolean   @default(false)
   suspended     Boolean   @default(false)
   profileComplete Boolean @default(false)
+  aadhaarImage    String?
+  aadhaarVerified Boolean  @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
