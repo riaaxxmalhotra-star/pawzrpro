@@ -112,7 +112,7 @@ export default function LoverProfilePage() {
           <div className="flex flex-col md:flex-row gap-6">
             <Avatar
               src={provider.avatar}
-              alt={provider.name || 'Provider'}
+              name={provider.name || 'Provider'}
               size="xl"
             />
             <div className="flex-1">
@@ -175,7 +175,7 @@ export default function LoverProfilePage() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{service.name}</h3>
-                      <Badge variant="secondary" size="sm">{service.type}</Badge>
+                      <Badge variant="default" size="sm">{service.type}</Badge>
                     </div>
                     {service.description && (
                       <p className="text-sm text-gray-600 mt-1">{service.description}</p>
@@ -203,7 +203,7 @@ export default function LoverProfilePage() {
                   <div className="flex items-center gap-3">
                     <Avatar
                       src={review.reviewer.avatar}
-                      alt={review.reviewer.name || 'Reviewer'}
+                      name={review.reviewer.name || 'Reviewer'}
                       size="sm"
                     />
                     <div>

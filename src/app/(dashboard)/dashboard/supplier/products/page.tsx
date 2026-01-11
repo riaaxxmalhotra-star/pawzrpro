@@ -108,7 +108,7 @@ export default function SupplierProductsPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-semibold">{product.name}</h3>
-                  <Badge variant="secondary" size="sm">{product.category}</Badge>
+                  <Badge variant="default" size="sm">{product.category}</Badge>
                 </div>
                 <p className="text-lg font-bold text-orange-600">${product.price}</p>
               </div>

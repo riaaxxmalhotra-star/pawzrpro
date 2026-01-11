@@ -91,7 +91,7 @@ export default function BrowseGroomersPage() {
                 <div className="flex items-start gap-4">
                   <Avatar
                     src={groomer.avatar}
-                    alt={groomer.name || 'Groomer'}
+                    name={groomer.name || 'Groomer'}
                     size="lg"
                   />
                   <div className="flex-1">

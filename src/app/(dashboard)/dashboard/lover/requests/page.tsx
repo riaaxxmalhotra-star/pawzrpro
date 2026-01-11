@@ -68,11 +68,11 @@ export default function RequestsPage() {
             <Card key={booking.id}>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <Avatar src={booking.owner.avatar} alt={booking.owner.name || ''} size="md" />
+                  <Avatar src={booking.owner.avatar} name={booking.owner.name || ''} size="md" />
                   <div>
                     <h3 className="font-semibold">{booking.owner.name}</h3>
                     {booking.pet && <p className="text-sm text-gray-500">{booking.pet.name} ({booking.pet.species})</p>}
-                    {booking.service && <Badge variant="secondary" size="sm">{booking.service.name}</Badge>}
+                    {booking.service && <Badge variant="default" size="sm">{booking.service.name}</Badge>}
                   </div>
                 </div>
                 <Badge variant="warning">{booking.status}</Badge>

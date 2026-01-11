@@ -27,7 +27,7 @@ interface Product {
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const { addItem } = useCart()
+  const { addToCart } = useCart()
   const [product, setProduct] = useState<Product | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
@@ -50,14 +50,15 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (!product) return
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      quantity,
-      photo: product.photos ? JSON.parse(product.photos)[0] : undefined,
-      supplierId: product.supplier.id,
-    })
+    for (let i = 0; i < quantity; i++) {
+      addToCart({
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        photo: product.photos ? JSON.parse(product.photos)[0] : undefined,
+        supplierId: product.supplier.id,
+      })
+    }
   }
 
   if (isLoading) return <div className="flex justify-center items-center min-h-screen"><LoadingSpinner size="lg" /></div>
@@ -92,7 +93,7 @@ export default function ProductDetailPage() {
           </div>
 
           <Card>
-            <Badge variant="secondary" className="mb-2">{product.category}</Badge>
+            <Badge variant="default" className="mb-2">{product.category}</Badge>
             <h1 className="text-2xl font-bold">{product.name}</h1>
             <p className="text-gray-500 mt-1">
               by {product.supplier.supplierProfile?.storeName || product.supplier.name}

@@ -32,7 +32,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Create new room
-    const room = await createDailyRoom(`pawzr-${bookingId}`)
+    const room = await createDailyRoom({ name: `pawzr-${bookingId}` })
+
+    if (!room) {
+      return NextResponse.json({ error: 'Failed to create video room' }, { status: 500 })
+    }
 
     await prisma.booking.update({
       where: { id: bookingId },

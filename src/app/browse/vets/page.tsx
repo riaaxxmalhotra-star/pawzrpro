@@ -92,7 +92,7 @@ export default function BrowseVetsPage() {
                 <div className="flex items-start gap-4">
                   <Avatar
                     src={vet.avatar}
-                    alt={vet.name || 'Vet'}
+                    name={vet.name || 'Vet'}
                     size="lg"
                   />
                   <div className="flex-1">
@@ -116,7 +116,7 @@ export default function BrowseVetsPage() {
                 {vet.vetProfile?.specializations && (
                   <div className="mt-3 flex flex-wrap gap-1">
                     {vet.vetProfile.specializations.split(',').slice(0, 3).map((spec, i) => (
-                      <Badge key={i} variant="secondary" size="sm">
+                      <Badge key={i} variant="default" size="sm">
                         {spec.trim()}
                       </Badge>
                     ))}

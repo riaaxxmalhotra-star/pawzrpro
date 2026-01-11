@@ -18,12 +18,12 @@ interface Order {
   items: Array<{ quantity: number; price: number; product: { name: string } }>
 }
 
-const statusColors: Record<string, 'warning' | 'info' | 'success' | 'error'> = {
+const statusColors: Record<string, 'warning' | 'info' | 'success' | 'danger'> = {
   PENDING: 'warning',
   CONFIRMED: 'info',
   SHIPPED: 'info',
   DELIVERED: 'success',
-  CANCELLED: 'error',
+  CANCELLED: 'danger',
 }
 
 export default function SupplierOrdersPage() {

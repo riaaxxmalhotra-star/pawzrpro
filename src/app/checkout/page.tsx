@@ -12,7 +12,8 @@ import Link from 'next/link'
 export default function CheckoutPage() {
   const router = useRouter()
   const { data: session } = useSession()
-  const { items, subtotal, platformFee, total, clearCart } = useCart()
+  const { cart, clearCart } = useCart()
+  const { items, subtotal, platformFee, total } = cart
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     shippingAddress: '',

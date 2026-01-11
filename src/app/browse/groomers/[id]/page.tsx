@@ -83,7 +83,7 @@ export default function GroomerProfilePage() {
         <Link href="/browse/groomers" className="text-orange-600 hover:underline mb-4 inline-block">&larr; Back to Groomers</Link>
         <Card className="mb-6">
           <div className="flex flex-col md:flex-row gap-6">
-            <Avatar src={groomer.avatar} alt={groomer.name || 'Groomer'} size="xl" />
+            <Avatar src={groomer.avatar} name={groomer.name || 'Groomer'} size="xl" />
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{groomer.name}</h1>
               {groomer.groomerProfile?.salonName && <p className="text-orange-600 font-medium">{groomer.groomerProfile.salonName}</p>}
@@ -105,7 +105,7 @@ export default function GroomerProfilePage() {
               {groomer.reviews.map((review) => (
                 <div key={review.id} className="border-b last:border-0 pb-4 last:pb-0">
                   <div className="flex items-center gap-3">
-                    <Avatar src={review.reviewer.avatar} alt={review.reviewer.name || ''} size="sm" />
+                    <Avatar src={review.reviewer.avatar} name={review.reviewer.name || ''} size="sm" />
                     <div><p className="font-medium">{review.reviewer.name}</p><StarRating rating={review.rating} size="sm" /></div>
                   </div>
                   {review.comment && <p className="text-gray-600 mt-2">{review.comment}</p>}

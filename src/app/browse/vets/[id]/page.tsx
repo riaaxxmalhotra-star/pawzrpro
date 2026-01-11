@@ -104,7 +104,7 @@ export default function VetProfilePage() {
 
         <Card className="mb-6">
           <div className="flex flex-col md:flex-row gap-6">
-            <Avatar src={vet.avatar} alt={vet.name || 'Vet'} size="xl" />
+            <Avatar src={vet.avatar} name={vet.name || 'Vet'} size="xl" />
             <div className="flex-1">
               <h1 className="text-2xl font-bold">{vet.name}</h1>
               {vet.vetProfile?.clinicName && (
@@ -168,7 +168,7 @@ export default function VetProfilePage() {
               {vet.reviews.map((review) => (
                 <div key={review.id} className="border-b last:border-0 pb-4 last:pb-0">
                   <div className="flex items-center gap-3">
-                    <Avatar src={review.reviewer.avatar} alt={review.reviewer.name || ''} size="sm" />
+                    <Avatar src={review.reviewer.avatar} name={review.reviewer.name || ''} size="sm" />
                     <div>
                       <p className="font-medium">{review.reviewer.name}</p>
                       <StarRating rating={review.rating} size="sm" />

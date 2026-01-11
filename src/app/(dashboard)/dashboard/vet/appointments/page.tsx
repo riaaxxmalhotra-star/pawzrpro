@@ -20,8 +20,8 @@ interface Booking {
   pet: { name: string; species: string; breed: string | null } | null
 }
 
-const statusColors: Record<string, 'warning' | 'success' | 'error' | 'info'> = {
-  PENDING: 'warning', ACCEPTED: 'info', COMPLETED: 'success', CANCELLED: 'error', DECLINED: 'error',
+const statusColors: Record<string, 'warning' | 'success' | 'danger' | 'info'> = {
+  PENDING: 'warning', ACCEPTED: 'info', COMPLETED: 'success', CANCELLED: 'danger', DECLINED: 'danger',
 }
 
 export default function VetAppointmentsPage() {
@@ -88,7 +88,7 @@ export default function VetAppointmentsPage() {
               <Card key={booking.id}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <Avatar src={booking.owner.avatar} alt={booking.owner.name || ''} size="md" />
+                    <Avatar src={booking.owner.avatar} name={booking.owner.name || ''} size="md" />
                     <div>
                       <h3 className="font-semibold">{booking.owner.name}</h3>
                       {booking.pet && <p className="text-sm text-gray-500">{booking.pet.name} ({booking.pet.species})</p>}
@@ -122,7 +122,7 @@ export default function VetAppointmentsPage() {
               <Card key={booking.id}>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
-                    <Avatar src={booking.owner.avatar} alt={booking.owner.name || ''} size="md" />
+                    <Avatar src={booking.owner.avatar} name={booking.owner.name || ''} size="md" />
                     <div>
                       <h3 className="font-semibold">{booking.owner.name}</h3>
                       {booking.pet && <p className="text-sm text-gray-500">{booking.pet.name}</p>}
@@ -148,7 +148,7 @@ export default function VetAppointmentsPage() {
               <Card key={booking.id} className="opacity-75">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Avatar src={booking.owner.avatar} alt={booking.owner.name || ''} size="sm" />
+                    <Avatar src={booking.owner.avatar} name={booking.owner.name || ''} size="sm" />
                     <div>
                       <h3 className="font-medium">{booking.owner.name}</h3>
                       <p className="text-sm text-gray-500">{new Date(booking.date).toLocaleDateString()}</p>
