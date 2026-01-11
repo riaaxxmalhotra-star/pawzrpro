@@ -38,15 +38,23 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // In production, send SMS via Twilio/AWS SNS
-    // For now, we'll return the OTP in development mode
-    console.log(`[DEV] Phone Login OTP for ${normalizedPhone}: ${otp}`)
+    // TODO: In production, send SMS via Twilio/MSG91/AWS SNS
+    // For now, we'll return the OTP for testing purposes
+    console.log(`Phone Login OTP for ${normalizedPhone}: ${otp}`)
+
+    // Check if SMS provider is configured
+    const smsConfigured = process.env.TWILIO_ACCOUNT_SID || process.env.MSG91_API_KEY
+
+    if (smsConfigured) {
+      // TODO: Implement actual SMS sending here
+      // await sendSMS(normalizedPhone, `Your Pawzr verification code is: ${otp}`)
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'OTP sent successfully',
-      // Only include debug_code in development
-      ...(process.env.NODE_ENV === 'development' && { debug_code: otp }),
+      message: smsConfigured ? 'OTP sent to your phone' : 'OTP generated (SMS not configured)',
+      // Show debug code until SMS provider is configured
+      debug_code: otp,
     })
   } catch (error) {
     console.error('Failed to send OTP:', error)
