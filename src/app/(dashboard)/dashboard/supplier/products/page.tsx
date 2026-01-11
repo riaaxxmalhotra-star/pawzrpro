@@ -169,7 +169,7 @@ export default function SupplierProductsPage() {
             <Input label="Inventory" type="number" value={formData.inventory} onChange={(e) => setFormData({ ...formData, inventory: e.target.value })} required />
           </div>
           <Input label="Category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} placeholder="e.g., Food, Toys, Accessories" required />
-          <div className="flex gap-3 justify-end pt-4 border-t">
+          <div className="flex gap-3 justify-end pt-4 border-t sticky bottom-0 bg-white pb-4 -mb-4">
             <Button type="button" variant="outline" onClick={closeModal}>Cancel</Button>
             <Button type="submit">{editingProduct ? 'Update Product' : 'Create Product'}</Button>
           </div>

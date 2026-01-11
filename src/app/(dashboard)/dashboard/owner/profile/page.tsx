@@ -163,9 +163,11 @@ export default function OwnerProfilePage() {
             </div>
           )}
 
-          <Button type="submit" isLoading={isSaving}>
-            Save Changes
-          </Button>
+          <div className="sticky bottom-0 bg-white pt-4 pb-6 -mx-6 px-6 border-t mt-6 sm:relative sm:border-t-0 sm:mt-0 sm:pb-0 sm:pt-0 sm:mx-0 sm:px-0">
+            <Button type="submit" isLoading={isSaving} className="w-full sm:w-auto">
+              Save Changes
+            </Button>
+          </div>
         </form>
       </Card>
     </div>

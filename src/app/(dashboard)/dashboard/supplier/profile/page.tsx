@@ -194,11 +194,11 @@ export default function SupplierProfilePage() {
             </div>
           )}
 
-          <div className="flex gap-3">
-            <Button type="submit" isLoading={isSaving}>
+          <div className="flex gap-3 sticky bottom-0 bg-white pt-4 pb-6 -mx-6 px-6 border-t mt-6 sm:relative sm:border-t-0 sm:mt-0 sm:pb-0 sm:pt-0">
+            <Button type="submit" isLoading={isSaving} className="flex-1 sm:flex-none">
               Save & Continue
             </Button>
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+            <Button type="button" variant="outline" onClick={() => router.back()} className="flex-1 sm:flex-none">
               Cancel
             </Button>
           </div>

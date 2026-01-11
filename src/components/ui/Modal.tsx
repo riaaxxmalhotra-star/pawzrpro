@@ -30,17 +30,17 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div
           className={cn(
-            'bg-white rounded-xl shadow-xl w-full transform transition-all',
+            'bg-white rounded-xl shadow-xl w-full transform transition-all my-auto max-h-[90vh] flex flex-col',
             sizes[size]
           )}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
               <button
                 onClick={onClose}
@@ -63,8 +63,8 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
             </div>
           )}
 
-          {/* Content */}
-          <div className="px-6 py-4">{children}</div>
+          {/* Content - Scrollable */}
+          <div className="px-6 py-4 overflow-y-auto flex-1">{children}</div>
         </div>
       </div>
     </Fragment>
@@ -80,7 +80,7 @@ export function ModalFooter({ children, className }: ModalFooterProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl -mx-6 -mb-4',
+        'flex items-center justify-end gap-3 pt-4 mt-4 border-t border-gray-200 sticky bottom-0 bg-white pb-safe',
         className
       )}
     >
