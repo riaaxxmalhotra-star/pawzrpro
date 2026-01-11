@@ -391,8 +391,8 @@ model PatientRecord {
 
 model VerificationCode {
   id        String   @id @default(cuid())
-  userId    String
-  type      String   // 'email' or 'phone'
+  userId    String?  // Optional - may not have user for login OTP
+  type      String   // 'email', 'phone', 'PHONE_LOGIN', 'PHONE_LOGIN_TOKEN'
   code      String
   target    String   // email address or phone number
   expiresAt DateTime
@@ -401,4 +401,5 @@ model VerificationCode {
 
   @@index([userId, type])
   @@index([code, type])
+  @@index([target, type])
 }

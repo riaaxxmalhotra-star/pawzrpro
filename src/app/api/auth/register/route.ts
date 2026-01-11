@@ -7,10 +7,10 @@ type RoleType = 'OWNER' | 'LOVER' | 'VET' | 'GROOMER' | 'SUPPLIER' | 'ADMIN'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { email, password, name, role } = body
+    const { email, phone, password, name, role, phoneVerified } = body
 
-    // Validate required fields
-    if (!email || !password || !name || !role) {
+    // Validate required fields - need either email or phone
+    if ((!email && !phone) || !password || !name || !role) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -26,29 +26,50 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    // Check if user already exists (by email or phone)
+    if (email) {
+      const existingUserByEmail = await prisma.user.findUnique({
+        where: { email },
+      })
 
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'Email already registered' },
-        { status: 400 }
-      )
+      if (existingUserByEmail) {
+        return NextResponse.json(
+          { error: 'Email already registered' },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (phone) {
+      const normalizedPhone = phone.replace(/[\s-]/g, '')
+      const existingUserByPhone = await prisma.user.findFirst({
+        where: { phone: normalizedPhone },
+      })
+
+      if (existingUserByPhone) {
+        return NextResponse.json(
+          { error: 'Phone number already registered' },
+          { status: 400 }
+        )
+      }
     }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    // Normalize phone if provided
+    const normalizedPhone = phone ? phone.replace(/[\s-]/g, '') : null
+
     // Create user
     const user = await prisma.user.create({
       data: {
-        email,
+        email: email || null,
+        phone: normalizedPhone,
         password: hashedPassword,
         name,
         role,
         profileComplete: false,
+        phoneVerified: phoneVerified ? new Date() : null,
       },
     })
 
@@ -77,6 +98,7 @@ export async function POST(req: NextRequest) {
         user: {
           id: user.id,
           email: user.email,
+          phone: user.phone,
           name: user.name,
           role: user.role,
         },

@@ -50,20 +50,66 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, phone, address, city, zipCode, bio, avatar } = body
+    const { name, phone, address, city, zipCode, bio, avatar, role, profileComplete } = body
+
+    // Get current user to check if role is being changed
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    })
+
+    // Build update data
+    const updateData: Record<string, unknown> = {
+      name,
+      phone,
+      address,
+      city,
+      zipCode,
+      bio,
+      avatar,
+    }
+
+    if (profileComplete !== undefined) {
+      updateData.profileComplete = profileComplete
+    }
+
+    // Only update role if provided and user doesn't have one yet (for OAuth users)
+    if (role && (!currentUser?.role || currentUser.role === 'OWNER')) {
+      updateData.role = role
+
+      // Create role-specific profile if changing role
+      if (role !== currentUser?.role) {
+        if (role === 'LOVER') {
+          await prisma.loverProfile.upsert({
+            where: { userId: session.user.id },
+            create: { userId: session.user.id },
+            update: {},
+          })
+        } else if (role === 'VET') {
+          await prisma.vetProfile.upsert({
+            where: { userId: session.user.id },
+            create: { userId: session.user.id },
+            update: {},
+          })
+        } else if (role === 'GROOMER') {
+          await prisma.groomerProfile.upsert({
+            where: { userId: session.user.id },
+            create: { userId: session.user.id },
+            update: {},
+          })
+        } else if (role === 'SUPPLIER') {
+          await prisma.supplierProfile.upsert({
+            where: { userId: session.user.id },
+            create: { userId: session.user.id },
+            update: {},
+          })
+        }
+      }
+    }
 
     const user = await prisma.user.update({
       where: { id: session.user.id },
-      data: {
-        name,
-        phone,
-        address,
-        city,
-        zipCode,
-        bio,
-        avatar,
-        profileComplete: true,
-      },
+      data: updateData,
       select: {
         id: true,
         name: true,

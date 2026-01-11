@@ -9,17 +9,31 @@ import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/ui/Loading'
 
+type LoginMethod = 'email' | 'phone'
+type PhoneStep = 'enter_phone' | 'enter_otp'
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
+  const [loginMethod, setLoginMethod] = useState<LoginMethod>('email')
+  const [phoneStep, setPhoneStep] = useState<PhoneStep>('enter_phone')
+
+  // Email login state
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  // Phone login state
+  const [phone, setPhone] = useState('')
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [phoneLoginData, setPhoneLoginData] = useState<{ userId: string; token: string } | null>(null)
+  const [debugCode, setDebugCode] = useState<string | null>(null)
+
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
@@ -44,8 +58,134 @@ function LoginForm() {
     }
   }
 
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+
+    try {
+      const res = await fetch('/api/auth/phone/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setPhoneStep('enter_otp')
+        if (data.debug_code) {
+          setDebugCode(data.debug_code)
+        }
+      } else {
+        setError(data.error || 'Failed to send OTP')
+      }
+    } catch {
+      setError('Failed to send OTP')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleVerifyOTP = async () => {
+    setError('')
+    setIsLoading(true)
+
+    const otpCode = otp.join('')
+    if (otpCode.length !== 6) {
+      setError('Please enter the complete 6-digit code')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      // Verify OTP and get login token
+      const verifyRes = await fetch('/api/auth/phone/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp: otpCode }),
+      })
+
+      const verifyData = await verifyRes.json()
+
+      if (!verifyRes.ok) {
+        if (verifyData.needsSignup) {
+          setError('No account found. Please sign up first.')
+        } else {
+          setError(verifyData.error || 'Invalid OTP')
+        }
+        setIsLoading(false)
+        return
+      }
+
+      // Use the phone login token to sign in via NextAuth
+      const result = await signIn('phone', {
+        userId: verifyData.user.id,
+        phoneLoginToken: verifyData.phoneLoginToken,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        router.push(callbackUrl)
+        router.refresh()
+      }
+    } catch {
+      setError('Failed to verify OTP')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) {
+      // Handle paste
+      const pastedValue = value.slice(0, 6).split('')
+      const newOtp = [...otp]
+      pastedValue.forEach((char, i) => {
+        if (i + index < 6 && /^\d$/.test(char)) {
+          newOtp[i + index] = char
+        }
+      })
+      setOtp(newOtp)
+
+      // Focus last filled or next empty
+      const lastFilledIndex = Math.min(index + pastedValue.length - 1, 5)
+      const nextInput = document.getElementById(`otp-${lastFilledIndex}`)
+      nextInput?.focus()
+    } else if (/^\d$/.test(value) || value === '') {
+      const newOtp = [...otp]
+      newOtp[index] = value
+      setOtp(newOtp)
+
+      // Auto-focus next input
+      if (value && index < 5) {
+        const nextInput = document.getElementById(`otp-${index + 1}`)
+        nextInput?.focus()
+      }
+    }
+  }
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`)
+      prevInput?.focus()
+    }
+    if (e.key === 'Enter' && otp.join('').length === 6) {
+      handleVerifyOTP()
+    }
+  }
+
   const handleGoogleSignIn = () => {
     signIn('google', { callbackUrl })
+  }
+
+  const resetPhoneLogin = () => {
+    setPhoneStep('enter_phone')
+    setOtp(['', '', '', '', '', ''])
+    setDebugCode(null)
+    setError('')
   }
 
   return (
@@ -55,45 +195,140 @@ function LoginForm() {
         <p className="text-gray-600 mt-1">Sign in to your Pawzr account</p>
       </div>
 
+      {/* Login method tabs */}
+      <div className="flex border-b border-gray-200 mb-6">
+        <button
+          type="button"
+          onClick={() => { setLoginMethod('email'); setError('') }}
+          className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
+            loginMethod === 'email'
+              ? 'border-orange-500 text-orange-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Email
+        </button>
+        <button
+          type="button"
+          onClick={() => { setLoginMethod('phone'); resetPhoneLogin() }}
+          className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
+            loginMethod === 'phone'
+              ? 'border-orange-500 text-orange-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Phone
+        </button>
+      </div>
+
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-        />
+      {loginMethod === 'email' ? (
+        <form onSubmit={handleEmailSubmit} className="space-y-4">
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+          />
 
-        <Input
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter your password"
-          required
-        />
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            required
+          />
 
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" className="rounded border-gray-300" />
-            <span className="text-gray-600">Remember me</span>
-          </label>
-          <Link href="/forgot-password" className="text-orange-600 hover:text-orange-700">
-            Forgot password?
-          </Link>
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded border-gray-300" />
+              <span className="text-gray-600">Remember me</span>
+            </label>
+            <Link href="/forgot-password" className="text-orange-600 hover:text-orange-700">
+              Forgot password?
+            </Link>
+          </div>
+
+          <Button type="submit" className="w-full" isLoading={isLoading}>
+            Sign In
+          </Button>
+        </form>
+      ) : (
+        <div className="space-y-4">
+          {phoneStep === 'enter_phone' ? (
+            <form onSubmit={handleSendOTP} className="space-y-4">
+              <Input
+                label="Phone Number"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+91 9876543210"
+                required
+              />
+
+              <Button type="submit" className="w-full" isLoading={isLoading}>
+                Send OTP
+              </Button>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Enter the 6-digit code sent to {phone}
+                </label>
+                <div className="flex gap-2 justify-center">
+                  {otp.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`otp-${index}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="w-10 h-12 text-center text-lg font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {debugCode && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Dev Mode:</strong> Your OTP is <code className="bg-yellow-100 px-1 rounded">{debugCode}</code>
+                  </p>
+                </div>
+              )}
+
+              <Button
+                type="button"
+                className="w-full"
+                onClick={handleVerifyOTP}
+                isLoading={isLoading}
+              >
+                Verify & Sign In
+              </Button>
+
+              <button
+                type="button"
+                onClick={resetPhoneLogin}
+                className="w-full text-sm text-gray-500 hover:text-gray-700"
+              >
+                Use a different phone number
+              </button>
+            </div>
+          )}
         </div>
-
-        <Button type="submit" className="w-full" isLoading={isLoading}>
-          Sign In
-        </Button>
-      </form>
+      )}
 
       <div className="mt-6">
         <div className="relative">
