@@ -24,6 +24,8 @@ export async function GET() {
         avatar: true,
         role: true,
         verified: true,
+        emailVerified: true,
+        phoneVerified: true,
         aadhaarImage: true,
         aadhaarVerified: true,
       },

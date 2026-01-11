@@ -35,8 +35,9 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // OAuth
+  // OAuth & Verification
   emailVerified DateTime?
+  phoneVerified DateTime?
   accounts      Account[]
   sessions      Session[]
 
@@ -386,4 +387,18 @@ model PatientRecord {
   diagnosis String?
   treatment String?
   createdAt DateTime @default(now())
+}
+
+model VerificationCode {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // 'email' or 'phone'
+  code      String
+  target    String   // email address or phone number
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, type])
+  @@index([code, type])
 }
