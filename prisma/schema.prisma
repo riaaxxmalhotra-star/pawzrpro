@@ -8,12 +8,13 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Note: SQLite doesn't support enums, so we use String types
-// Role: OWNER, LOVER, VET, GROOMER, SUPPLIER, ADMIN
-// BookingStatus: PENDING, ACCEPTED, DECLINED, CANCELLED, COMPLETED
-// OrderStatus: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
-// ServiceType: WALKING, SITTING, BOARDING
-// ProviderType: LOVER, VET, GROOMER
+// Using String types for role/status fields for compatibility
+// Valid values:
+// - Role: OWNER, LOVER, VET, GROOMER, SUPPLIER, ADMIN
+// - BookingStatus: PENDING, ACCEPTED, DECLINED, CANCELLED, COMPLETED
+// - OrderStatus: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
+// - ServiceType: WALKING, SITTING, BOARDING
+// - ProviderType: LOVER, VET, GROOMER
 
 model User {
   id            String    @id @default(cuid())
