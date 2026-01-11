@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Modal } from '@/components/ui/Modal'
 import { LoadingSpinner } from '@/components/ui/Loading'
+import { MultiImageUpload } from '@/components/ui/MultiImageUpload'
 
 interface Product {
   id: string
@@ -16,6 +17,7 @@ interface Product {
   price: number
   category: string
   inventory: number
+  photos: string | null
   active: boolean
 }
 
@@ -24,7 +26,7 @@ export default function SupplierProductsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', inventory: '' })
+  const [formData, setFormData] = useState({ name: '', description: '', price: '', category: '', inventory: '', photos: [] as string[] })
 
   useEffect(() => { fetchProducts() }, [])
 
@@ -54,6 +56,7 @@ export default function SupplierProductsPage() {
           price: parseFloat(formData.price),
           category: formData.category,
           inventory: parseInt(formData.inventory),
+          photos: JSON.stringify(formData.photos),
         }),
       })
       if (res.ok) {
@@ -62,6 +65,16 @@ export default function SupplierProductsPage() {
       }
     } catch (error) {
       console.error('Failed to save product:', error)
+    }
+  }
+
+  const parsePhotos = (photos: string | null): string[] => {
+    if (!photos) return []
+    try {
+      const parsed = JSON.parse(photos)
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
     }
   }
 
@@ -74,10 +87,11 @@ export default function SupplierProductsPage() {
         price: product.price.toString(),
         category: product.category,
         inventory: product.inventory.toString(),
+        photos: parsePhotos(product.photos),
       })
     } else {
       setEditingProduct(null)
-      setFormData({ name: '', description: '', price: '', category: '', inventory: '0' })
+      setFormData({ name: '', description: '', price: '', category: '', inventory: '0', photos: [] })
     }
     setIsModalOpen(true)
   }
@@ -103,37 +117,61 @@ export default function SupplierProductsPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {products.map((product) => (
-            <Card key={product.id}>
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold">{product.name}</h3>
-                  <Badge variant="default" size="sm">{product.category}</Badge>
+          {products.map((product) => {
+            const productPhotos = parsePhotos(product.photos)
+            return (
+              <Card key={product.id} className="overflow-hidden">
+                {productPhotos.length > 0 ? (
+                  <div className="h-40 bg-gray-100">
+                    <img
+                      src={productPhotos[0]}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-40 bg-gray-100 flex items-center justify-center">
+                    <span className="text-4xl">📦</span>
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold">{product.name}</h3>
+                      <Badge variant="default" size="sm">{product.category}</Badge>
+                    </div>
+                    <p className="text-lg font-bold text-orange-600">${product.price}</p>
+                  </div>
+                  {product.description && <p className="text-sm text-gray-600 mt-2 line-clamp-2">{product.description}</p>}
+                  <div className="mt-4 flex justify-between items-center">
+                    <span className="text-sm text-gray-500">{product.inventory} in stock</span>
+                    <Button size="sm" variant="outline" onClick={() => openModal(product)}>Edit</Button>
+                  </div>
                 </div>
-                <p className="text-lg font-bold text-orange-600">${product.price}</p>
-              </div>
-              {product.description && <p className="text-sm text-gray-600 mt-2 line-clamp-2">{product.description}</p>}
-              <div className="mt-4 flex justify-between items-center">
-                <span className="text-sm text-gray-500">{product.inventory} in stock</span>
-                <Button size="sm" variant="outline" onClick={() => openModal(product)}>Edit</Button>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingProduct ? 'Edit Product' : 'Add Product'}>
+      <Modal isOpen={isModalOpen} onClose={closeModal} title={editingProduct ? 'Edit Product' : 'Add Product'} size="lg">
         <form onSubmit={handleSubmit} className="space-y-4">
+          <MultiImageUpload
+            images={formData.photos}
+            onImagesChange={(photos) => setFormData({ ...formData, photos })}
+            maxImages={6}
+            label="Product Images"
+          />
           <Input label="Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
           <Textarea label="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={3} />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Price" type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
+            <Input label="Price ($)" type="number" step="0.01" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required />
             <Input label="Inventory" type="number" value={formData.inventory} onChange={(e) => setFormData({ ...formData, inventory: e.target.value })} required />
           </div>
-          <Input label="Category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required />
-          <div className="flex gap-3 justify-end">
+          <Input label="Category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} placeholder="e.g., Food, Toys, Accessories" required />
+          <div className="flex gap-3 justify-end pt-4 border-t">
             <Button type="button" variant="outline" onClick={closeModal}>Cancel</Button>
-            <Button type="submit">{editingProduct ? 'Update' : 'Create'}</Button>
+            <Button type="submit">{editingProduct ? 'Update Product' : 'Create Product'}</Button>
           </div>
         </form>
       </Modal>
