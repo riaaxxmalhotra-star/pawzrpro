@@ -92,16 +92,7 @@ export function getPlatform(): string {
 }
 
 export async function openAuthUrl(url: string): Promise<void> {
-  if (Capacitor.isNativePlatform()) {
-    // Create a temporary link and click it to open in Safari
-    const link = document.createElement('a')
-    link.href = url
-    link.target = '_blank'
-    link.rel = 'noopener noreferrer'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  } else {
-    window.location.href = url
-  }
+  // Navigate to the URL - on iOS, external domains open in Safari
+  // because allowNavigation only includes our domain
+  window.location.href = url
 }

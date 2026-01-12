@@ -7,21 +7,14 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://pawzrpro.vercel.app',
     cleartext: true,
-    // DO NOT add Google domains here - they must open in system browser for OAuth
+    // Only allow navigation to our domain - external URLs open in Safari
     allowNavigation: [
-      'https://pawzrpro.vercel.app/*'
+      'pawzrpro.vercel.app'
     ]
   },
   ios: {
     allowsLinkPreview: false,
-    scrollEnabled: true,
-    limitsNavigationsToAppBoundDomains: false
-  },
-  plugins: {
-    Browser: {
-      // Ensure OAuth opens in system browser, not WebView
-      presentationStyle: 'popover'
-    }
+    scrollEnabled: true
   }
 };
 
