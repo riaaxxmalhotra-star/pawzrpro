@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/Loading'
-import { isNativePlatform, openAuthUrl } from '@/lib/capacitor'
+import { isNativePlatform, openAuthUrl, getGoogleOAuthUrl } from '@/lib/capacitor'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -45,10 +45,9 @@ function LoginForm() {
 
     try {
       if (isNativePlatform()) {
-        // For mobile: open NextAuth signin page in Safari
-        // User clicks Google button there, which handles OAuth properly
-        const callbackParam = encodeURIComponent('/api/auth/mobile-callback')
-        await openAuthUrl(`https://pawzrpro.vercel.app/api/auth/signin?callbackUrl=${callbackParam}`)
+        // For mobile: open Google OAuth directly in Safari
+        // This bypasses the WebView and opens in the real browser
+        await openAuthUrl(getGoogleOAuthUrl())
       } else {
         // Use standard NextAuth flow for web
         await signIn('google', {

@@ -5,7 +5,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/ui/Loading'
-import { isNativePlatform, openAuthUrl } from '@/lib/capacitor'
+import { isNativePlatform, openAuthUrl, getGoogleOAuthUrl } from '@/lib/capacitor'
 
 type Step = 'role' | 'signup' | 'already_logged_in'
 
@@ -77,9 +77,8 @@ export default function SignupPage() {
 
     try {
       if (isNativePlatform()) {
-        // For mobile: open NextAuth signin page in Safari
-        const callbackParam = encodeURIComponent('/api/auth/mobile-callback')
-        await openAuthUrl(`https://pawzrpro.vercel.app/api/auth/signin?callbackUrl=${callbackParam}`)
+        // For mobile: open Google OAuth directly in Safari
+        await openAuthUrl(getGoogleOAuthUrl())
       } else {
         // Use standard NextAuth flow for web
         signIn('google', { callbackUrl: '/onboarding' })

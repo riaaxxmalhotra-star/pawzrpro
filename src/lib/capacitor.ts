@@ -92,7 +92,20 @@ export function getPlatform(): string {
 }
 
 export async function openAuthUrl(url: string): Promise<void> {
-  // Navigate to the URL - on iOS, external domains open in Safari
-  // because allowNavigation only includes our domain
-  window.location.href = url
+  if (Capacitor.isNativePlatform()) {
+    // Use Browser plugin to open external URL in Safari
+    await Browser.open({ url })
+  } else {
+    window.location.href = url
+  }
+}
+
+// Direct Google OAuth - bypasses NextAuth signin page
+export function getGoogleOAuthUrl(): string {
+  const clientId = '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com'
+  const redirectUri = encodeURIComponent('https://pawzrpro.vercel.app/api/auth/callback/google')
+  const scope = encodeURIComponent('openid email profile')
+  const state = encodeURIComponent(JSON.stringify({ callbackUrl: '/api/auth/mobile-callback' }))
+
+  return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&prompt=select_account`
 }
