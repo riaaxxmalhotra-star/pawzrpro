@@ -6,17 +6,20 @@ const config: CapacitorConfig = {
   webDir: 'public',
   server: {
     url: 'https://pawzrpro.vercel.app',
-    cleartext: true
+    cleartext: true,
+    // Open Google OAuth in external browser (Safari) instead of WebView
+    allowNavigation: ['pawzrpro.vercel.app']
   },
   ios: {
     allowsLinkPreview: false,
     scrollEnabled: true
   },
   plugins: {
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      serverClientId: '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true
+    SocialLogin: {
+      google: {
+        iOSClientId: '1094158533320-7fugh8bijpp1770uo21b0ubf8f36odp1.apps.googleusercontent.com',
+        iOSServerClientId: '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com'
+      }
     }
   }
 };

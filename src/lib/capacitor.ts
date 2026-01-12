@@ -3,11 +3,10 @@
 import { App } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
 import { Capacitor } from '@capacitor/core'
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth'
+import { SocialLogin } from '@capgo/capacitor-social-login'
 
 let initialized = false
-let googleAuthInitialized = false
-let authCallbackHandler: ((token: string, userId: string) => void) | null = null
+let socialLoginInitialized = false
 
 export function initCapacitorApp() {
   if (initialized || !Capacitor.isNativePlatform()) return
@@ -86,7 +85,9 @@ export function initCapacitorApp() {
 }
 
 export function isNativePlatform(): boolean {
-  return Capacitor.isNativePlatform()
+  const isNative = Capacitor.isNativePlatform()
+  console.log('isNativePlatform:', isNative, 'platform:', Capacitor.getPlatform())
+  return isNative
 }
 
 export function getPlatform(): string {
@@ -101,33 +102,47 @@ export async function openAuthUrl(url: string): Promise<void> {
   }
 }
 
-// Initialize Google Auth for native platforms
-export async function initGoogleAuth(): Promise<void> {
-  if (googleAuthInitialized || !Capacitor.isNativePlatform()) return
+// Initialize Social Login
+async function initSocialLogin() {
+  if (socialLoginInitialized || !Capacitor.isNativePlatform()) return
 
-  GoogleAuth.initialize({
-    clientId: '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com',
-    scopes: ['profile', 'email'],
-    grantOfflineAccess: true,
+  await SocialLogin.initialize({
+    google: {
+      iOSClientId: '1094158533320-7fugh8bijpp1770uo21b0ubf8f36odp1.apps.googleusercontent.com',
+      iOSServerClientId: '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com',
+    },
+    apple: {
+      clientId: 'com.pawzr.app',
+    }
   })
-  googleAuthInitialized = true
+  socialLoginInitialized = true
 }
 
 // Native Google Sign-In
 export async function nativeGoogleSignIn(): Promise<{ success: boolean; error?: string }> {
   try {
-    await initGoogleAuth()
+    console.log('nativeGoogleSignIn: Starting...')
+    console.log('nativeGoogleSignIn: isNative =', Capacitor.isNativePlatform())
 
-    const result = await GoogleAuth.signIn()
+    await initSocialLogin()
+    console.log('nativeGoogleSignIn: SocialLogin initialized')
 
-    if (result.authentication?.idToken) {
-      // Exchange Google token with our backend
+    const result = await SocialLogin.login({
+      provider: 'google',
+      options: {
+        scopes: ['email', 'profile'],
+      }
+    })
+    console.log('nativeGoogleSignIn: Login result =', JSON.stringify(result))
+
+    if (result?.result?.idToken) {
+      // Exchange token with backend
       const response = await fetch('https://pawzrpro.vercel.app/api/auth/google-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          idToken: result.authentication.idToken,
-          accessToken: result.authentication.accessToken,
+          idToken: result.result.idToken,
+          accessToken: result.result.accessToken,
         }),
       })
 
@@ -143,6 +158,45 @@ export async function nativeGoogleSignIn(): Promise<{ success: boolean; error?: 
     return { success: false, error: 'No ID token received' }
   } catch (error: any) {
     console.error('Google sign in error:', error)
+    return { success: false, error: error.message || 'Sign in failed' }
+  }
+}
+
+// Native Apple Sign-In
+export async function nativeAppleSignIn(): Promise<{ success: boolean; error?: string }> {
+  try {
+    await initSocialLogin()
+
+    const result = await SocialLogin.login({
+      provider: 'apple',
+      options: {
+        scopes: ['email', 'name'],
+      }
+    })
+
+    if (result?.result?.idToken) {
+      // Exchange token with backend
+      const response = await fetch('https://pawzrpro.vercel.app/api/auth/apple-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idToken: result.result.idToken,
+          user: result.result.user,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        window.location.href = data.redirectTo || '/dashboard'
+        return { success: true }
+      } else {
+        return { success: false, error: 'Failed to authenticate with server' }
+      }
+    }
+
+    return { success: false, error: 'No ID token received' }
+  } catch (error: any) {
+    console.error('Apple sign in error:', error)
     return { success: false, error: error.message || 'Sign in failed' }
   }
 }

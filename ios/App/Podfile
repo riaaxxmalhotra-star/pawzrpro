@@ -9,8 +9,8 @@ target 'App' do
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorBrowser', :path => '../../node_modules/@capacitor/browser'
 
-  # Google Sign-In plugin
-  pod 'CodetrixStudioCapacitorGoogleAuth', :path => '../../node_modules/@codetrix-studio/capacitor-google-auth'
+  # Social Login
+  pod 'CapgoCapacitorSocialLogin', :path => '../../node_modules/@capgo/capacitor-social-login'
 end
 
 post_install do |installer|
