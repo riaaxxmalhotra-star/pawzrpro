@@ -93,13 +93,14 @@ export function getPlatform(): string {
 
 export async function openAuthUrl(url: string): Promise<void> {
   if (Capacitor.isNativePlatform()) {
-    // Open in Safari (external browser) - Google accepts this for OAuth
-    // Using Browser.open with specific options to ensure external browser
-    await Browser.open({
-      url,
-      windowName: '_blank',
-      presentationStyle: 'popover'
-    })
+    // Create a temporary link and click it to open in Safari
+    const link = document.createElement('a')
+    link.href = url
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   } else {
     window.location.href = url
   }
