@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/Loading'
-import { isNativePlatform, googleSignIn } from '@/lib/capacitor'
+import { isNativePlatform, openAuthUrl } from '@/lib/capacitor'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -46,13 +46,10 @@ function LoginForm() {
     try {
       // Check if we're on a native platform
       if (isNativePlatform()) {
-        // Use native Google OAuth with ASWebAuthenticationSession
-        const result = await googleSignIn()
-        if (!result.success) {
-          setError(result.error || 'Sign in failed. Please try again.')
-          setIsLoading(false)
-        }
-        // On success, googleSignIn() redirects automatically
+        // Open NextAuth signin in Safari browser
+        const baseUrl = 'https://pawzrpro.vercel.app'
+        const mobileCallback = encodeURIComponent(`${baseUrl}/api/auth/mobile-callback`)
+        await openAuthUrl(`${baseUrl}/api/auth/signin?callbackUrl=${mobileCallback}`)
       } else {
         // Use standard NextAuth flow for web
         await signIn('google', {
