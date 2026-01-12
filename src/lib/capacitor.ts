@@ -200,3 +200,4 @@ export async function nativeAppleSignIn(): Promise<{ success: boolean; error?: s
     return { success: false, error: error.message || 'Sign in failed' }
   }
 }
+// Force rebuild Mon Jan 12 14:54:36 IST 2026
