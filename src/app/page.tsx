@@ -1,15 +1,50 @@
+'use client'
+
+import { useState } from 'react'
 import Link from "next/link";
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+  const router = useRouter()
+  const [tapCount, setTapCount] = useState(0)
+  const [showAdmin, setShowAdmin] = useState(false)
+
+  const handleLogoTap = () => {
+    const newCount = tapCount + 1
+    setTapCount(newCount)
+    if (newCount >= 5) {
+      setShowAdmin(true)
+      setTapCount(0)
+    }
+    // Reset tap count after 2 seconds of inactivity
+    setTimeout(() => setTapCount(0), 2000)
+  }
+
   return (
     <div className="absolute inset-0 bg-gradient-to-b from-orange-50 via-amber-50 to-orange-100 flex flex-col overflow-hidden">
+      {/* Hidden Admin Button - appears after tapping logo 5 times */}
+      {showAdmin && (
+        <button
+          onClick={() => router.push('/admin')}
+          className="absolute top-4 right-4 z-50 w-10 h-10 bg-white/80 backdrop-blur rounded-full shadow-lg flex items-center justify-center text-lg active:scale-95 transition-transform"
+          style={{ marginTop: 'env(safe-area-inset-top)' }}
+        >
+          ⚙️
+        </button>
+      )}
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 overflow-y-auto" style={{ paddingTop: 'max(40px, env(safe-area-inset-top))' }}>
-        {/* Logo Section */}
+        {/* Logo Section - Tap 5 times to reveal admin */}
         <div className="text-center mb-8">
-          <div className="text-7xl mb-4 drop-shadow-lg">🐾</div>
-          <h1 className="text-5xl font-bold text-orange-600 tracking-tight">Pawzr</h1>
-          <p className="text-gray-600 mt-3 text-lg">Your pet community app</p>
+          <div
+            className="text-7xl mb-4 drop-shadow-lg cursor-pointer select-none"
+            onClick={handleLogoTap}
+          >
+            🐾
+          </div>
+          <h1 className="text-5xl font-black text-orange-600 tracking-tight" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>Pawzr</h1>
+          <p className="text-gray-500 mt-3 text-base font-medium">Your pet community</p>
         </div>
 
         {/* Feature Pills */}

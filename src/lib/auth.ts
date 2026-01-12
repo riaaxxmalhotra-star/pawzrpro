@@ -120,6 +120,18 @@ export const authOptions: NextAuthOptions = {
     error: '/login',
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Handle redirect after OAuth
+      // Check if this is coming from the mobile app
+      if (url.startsWith(baseUrl)) {
+        return url
+      }
+      // For relative URLs
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`
+      }
+      return baseUrl
+    },
     async jwt({ token, user, account, trigger, session }) {
       // On initial sign in
       if (account && user) {

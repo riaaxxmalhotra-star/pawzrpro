@@ -5,7 +5,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/ui/Loading'
-import { isNativePlatform, openAuthUrl } from '@/lib/capacitor'
+import { isNativePlatform, googleSignIn } from '@/lib/capacitor'
 
 type Step = 'role' | 'signup' | 'already_logged_in'
 
@@ -78,11 +78,13 @@ export default function SignupPage() {
     try {
       // Check if we're on a native platform
       if (isNativePlatform()) {
-        // For mobile: open NextAuth signin page directly in system browser
-        // This ensures Google sees a legitimate browser request (not WebView)
-        const baseUrl = 'https://pawzrpro.vercel.app'
-        const mobileCallback = encodeURIComponent(`${baseUrl}/api/auth/mobile-callback`)
-        await openAuthUrl(`${baseUrl}/api/auth/signin?callbackUrl=${mobileCallback}`)
+        // Use native Google OAuth with ASWebAuthenticationSession
+        const result = await googleSignIn()
+        if (!result.success) {
+          setError(result.error || 'Sign up failed. Please try again.')
+          setIsLoading(false)
+        }
+        // On success, googleSignIn() redirects automatically
       } else {
         // Use standard NextAuth flow for web
         signIn('google', { callbackUrl: '/onboarding' })
