@@ -9,7 +9,7 @@ export default function Home() {
         <div className="text-center mb-8">
           <div className="text-7xl mb-4 drop-shadow-lg">🐾</div>
           <h1 className="text-5xl font-bold text-orange-600 tracking-tight">Pawzr</h1>
-          <p className="text-gray-600 mt-3 text-lg">Your pet community</p>
+          <p className="text-gray-600 mt-3 text-lg">Your pet community app</p>
         </div>
 
         {/* Feature Pills */}
