@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET || 'your-secret-key',
     })
 
-    // Create response with session cookie
+    // Create response with session cookie and token for native apps
     const response = NextResponse.json({
       success: true,
       user: {
@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
         role: user.role,
         image: user.avatar,
       },
+      token: jwtToken,
       redirectTo: '/onboarding',
     })
 
