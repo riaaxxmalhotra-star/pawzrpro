@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Avatar } from '@/components/ui/Avatar'
 import { LoadingSpinner } from '@/components/ui/Loading'
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 
 interface Booking {
   id: string
@@ -15,7 +16,7 @@ interface Booking {
   status: string
   price: number
   notes: string | null
-  owner: { id: string; name: string; avatar: string | null }
+  owner: { id: string; name: string; avatar: string | null; aadhaarVerified: boolean }
   pet: { name: string; species: string } | null
   service: { name: string } | null
 }
@@ -70,7 +71,10 @@ export default function RequestsPage() {
                 <div className="flex items-center gap-4">
                   <Avatar src={booking.owner.avatar} name={booking.owner.name || ''} size="md" />
                   <div>
-                    <h3 className="font-semibold">{booking.owner.name}</h3>
+                    <h3 className="font-semibold flex items-center gap-1">
+                      {booking.owner.name}
+                      {booking.owner.aadhaarVerified && <VerifiedBadge size="sm" />}
+                    </h3>
                     {booking.pet && <p className="text-sm text-gray-500">{booking.pet.name} ({booking.pet.species})</p>}
                     {booking.service && <Badge variant="default" size="sm">{booking.service.name}</Badge>}
                   </div>

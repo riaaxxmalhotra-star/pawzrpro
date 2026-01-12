@@ -14,6 +14,7 @@ interface VerificationStatus {
   emailVerified: boolean
   phone: string | null
   phoneVerified: boolean
+  aadhaarNumber: string | null
   aadhaarImage: string | null
   aadhaarVerified: boolean
 }
@@ -41,6 +42,7 @@ export default function VerificationPage() {
   const phoneInputRefs = useRef<(HTMLInputElement | null)[]>([])
 
   // Aadhaar state
+  const [aadhaarNumber, setAadhaarNumber] = useState('')
   const [aadhaarImage, setAadhaarImage] = useState<string | null>(null)
   const [aadhaarSaving, setAadhaarSaving] = useState(false)
   const [aadhaarMessage, setAadhaarMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -59,10 +61,12 @@ export default function VerificationPage() {
           emailVerified: !!data.emailVerified,
           phone: data.phone,
           phoneVerified: !!data.phoneVerified,
+          aadhaarNumber: data.aadhaarNumber,
           aadhaarImage: data.aadhaarImage,
           aadhaarVerified: data.aadhaarVerified,
         })
         setPhoneNumber(data.phone || '')
+        setAadhaarNumber(data.aadhaarNumber || '')
         setAadhaarImage(data.aadhaarImage)
       }
     } catch (error) {
@@ -232,9 +236,18 @@ export default function VerificationPage() {
   }
 
   // Aadhaar handlers
+  const handleAadhaarNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 12)
+    setAadhaarNumber(value)
+  }
+
   const submitAadhaar = async () => {
+    if (!aadhaarNumber || aadhaarNumber.length !== 12) {
+      setAadhaarMessage({ type: 'error', text: 'Please enter a valid 12-digit Aadhaar number' })
+      return
+    }
     if (!aadhaarImage) {
-      setAadhaarMessage({ type: 'error', text: 'Please upload your Aadhaar card' })
+      setAadhaarMessage({ type: 'error', text: 'Please upload your Aadhaar card image' })
       return
     }
 
@@ -244,11 +257,11 @@ export default function VerificationPage() {
       const res = await fetch('/api/users/me/aadhaar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aadhaarImage }),
+        body: JSON.stringify({ aadhaarNumber, aadhaarImage }),
       })
       if (res.ok) {
         setAadhaarMessage({ type: 'success', text: 'Aadhaar submitted for verification!' })
-        setStatus(prev => prev ? { ...prev, aadhaarImage } : null)
+        setStatus(prev => prev ? { ...prev, aadhaarNumber, aadhaarImage } : null)
       } else {
         const data = await res.json()
         setAadhaarMessage({ type: 'error', text: data.error || 'Failed to submit' })
@@ -440,6 +453,18 @@ export default function VerificationPage() {
 
         {!status?.aadhaarVerified && (
           <div className="space-y-4">
+            <Input
+              label="Aadhaar Number"
+              type="text"
+              value={aadhaarNumber}
+              onChange={handleAadhaarNumberChange}
+              placeholder="Enter 12-digit Aadhaar number"
+              maxLength={12}
+              disabled={!!status?.aadhaarImage}
+            />
+            <p className="text-xs text-gray-500 -mt-2">
+              {aadhaarNumber.length}/12 digits
+            </p>
             <ImageUpload
               currentImage={aadhaarImage}
               onUpload={setAadhaarImage}
@@ -451,7 +476,7 @@ export default function VerificationPage() {
             <Button
               onClick={submitAadhaar}
               isLoading={aadhaarSaving}
-              disabled={!aadhaarImage || !!status?.aadhaarImage}
+              disabled={!aadhaarImage || !aadhaarNumber || aadhaarNumber.length !== 12 || !!status?.aadhaarImage}
               className="w-full"
             >
               {status?.aadhaarImage ? 'Pending Review' : 'Submit for Verification'}

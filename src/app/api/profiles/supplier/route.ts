@@ -19,6 +19,7 @@ export async function GET() {
             name: true,
             email: true,
             phone: true,
+            instagram: true,
             address: true,
             city: true,
             zipCode: true,
@@ -39,6 +40,7 @@ export async function GET() {
               name: true,
               email: true,
               phone: true,
+              instagram: true,
               address: true,
               city: true,
               zipCode: true,
@@ -63,13 +65,14 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { storeName, description, logo, website, phone, address, city, zipCode } = body
+    const { storeName, description, logo, website, instagram, phone, address, city, zipCode } = body
 
     // Update user info
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
         phone,
+        instagram,
         address,
         city,
         zipCode,
@@ -99,6 +102,7 @@ export async function PUT(req: NextRequest) {
             name: true,
             email: true,
             phone: true,
+            instagram: true,
             address: true,
             city: true,
             zipCode: true,

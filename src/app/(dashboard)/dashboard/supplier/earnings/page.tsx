@@ -13,7 +13,13 @@ interface EarningsData {
 }
 
 export default function SupplierEarningsPage() {
-  const [earnings, setEarnings] = useState<EarningsData | null>(null)
+  const [earnings, setEarnings] = useState<EarningsData>({
+    totalRevenue: 0,
+    platformFees: 0,
+    netEarnings: 0,
+    pendingPayouts: 0,
+    completedOrders: 0,
+  })
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -22,29 +28,33 @@ export default function SupplierEarningsPage() {
 
   const fetchEarnings = async () => {
     try {
-      const res = await fetch('/api/earnings')
+      // Fetch orders for supplier
+      const res = await fetch('/api/orders')
       if (res.ok) {
         const data = await res.json()
-        setEarnings(data)
-      } else {
-        // Set default values if no data
+        const orders = data.orders || []
+
+        // Calculate earnings from completed orders
+        const completedOrders = orders.filter((o: { status: string }) => o.status === 'DELIVERED')
+        const pendingOrders = orders.filter((o: { status: string }) =>
+          o.status === 'PROCESSING' || o.status === 'SHIPPED'
+        )
+
+        const totalRevenue = completedOrders.reduce((sum: number, o: { total: number }) => sum + (o.total || 0), 0)
+        const platformFees = totalRevenue * 0.02 // 2% platform fee
+        const netEarnings = totalRevenue - platformFees
+        const pendingPayouts = pendingOrders.reduce((sum: number, o: { total: number }) => sum + (o.total || 0), 0)
+
         setEarnings({
-          totalRevenue: 0,
-          platformFees: 0,
-          netEarnings: 0,
-          pendingPayouts: 0,
-          completedOrders: 0,
+          totalRevenue,
+          platformFees,
+          netEarnings,
+          pendingPayouts,
+          completedOrders: completedOrders.length,
         })
       }
     } catch (error) {
       console.error('Failed to fetch earnings:', error)
-      setEarnings({
-        totalRevenue: 0,
-        platformFees: 0,
-        netEarnings: 0,
-        pendingPayouts: 0,
-        completedOrders: 0,
-      })
     } finally {
       setIsLoading(false)
     }
@@ -75,7 +85,7 @@ export default function SupplierEarningsPage() {
               <div>
                 <p className="text-sm text-gray-500">Total Revenue</p>
                 <p className="text-xl font-bold text-gray-900">
-                  ${earnings?.totalRevenue.toFixed(2) || '0.00'}
+                  Rs {earnings.totalRevenue.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -91,7 +101,7 @@ export default function SupplierEarningsPage() {
               <div>
                 <p className="text-sm text-gray-500">Platform Fees (2%)</p>
                 <p className="text-xl font-bold text-gray-900">
-                  ${earnings?.platformFees.toFixed(2) || '0.00'}
+                  Rs {earnings.platformFees.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -107,7 +117,7 @@ export default function SupplierEarningsPage() {
               <div>
                 <p className="text-sm text-gray-500">Net Earnings</p>
                 <p className="text-xl font-bold text-green-600">
-                  ${earnings?.netEarnings.toFixed(2) || '0.00'}
+                  Rs {earnings.netEarnings.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -123,7 +133,7 @@ export default function SupplierEarningsPage() {
               <div>
                 <p className="text-sm text-gray-500">Completed Orders</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {earnings?.completedOrders || 0}
+                  {earnings.completedOrders}
                 </p>
               </div>
             </div>
@@ -142,14 +152,14 @@ export default function SupplierEarningsPage() {
               <li>• Payouts are processed weekly for completed orders</li>
               <li>• A 2% platform fee is deducted from each sale</li>
               <li>• Funds are transferred to your linked bank account</li>
-              <li>• Minimum payout threshold: $10</li>
+              <li>• Minimum payout threshold: Rs 500</li>
             </ul>
           </div>
 
-          {(earnings?.pendingPayouts || 0) > 0 && (
+          {earnings.pendingPayouts > 0 && (
             <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="font-medium text-yellow-900">
-                Pending Payout: ${earnings?.pendingPayouts.toFixed(2)}
+                Pending Payout: Rs {earnings.pendingPayouts.toFixed(2)}
               </p>
               <p className="text-sm text-yellow-700 mt-1">
                 Will be processed in the next payout cycle

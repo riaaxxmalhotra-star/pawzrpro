@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/Loading'
 import { StarRating } from '@/components/shared/StarRating'
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import Link from 'next/link'
 
 interface Service {
@@ -26,6 +27,7 @@ interface Provider {
   avatar: string | null
   bio: string | null
   city: string | null
+  aadhaarVerified: boolean
   loverProfile: {
     experience: string | null
     certifications: string | null
@@ -116,7 +118,10 @@ export default function LoverProfilePage() {
               size="xl"
             />
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">{provider.name}</h1>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                {provider.name}
+                {provider.aadhaarVerified && <VerifiedBadge size="lg" showText />}
+              </h1>
               {provider.city && (
                 <p className="text-gray-500">{provider.city}</p>
               )}

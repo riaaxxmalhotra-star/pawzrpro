@@ -9,8 +9,10 @@ import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
 import { ImageUpload } from '@/components/ui/ImageUpload'
 import { LoadingSpinner } from '@/components/ui/Loading'
+import { PhoneInput } from '@/components/ui/PhoneInput'
+import { AddressForm } from '@/components/ui/AddressForm'
 
-type Step = 'profile' | 'pet' | 'complete'
+type Step = 'profile' | 'aadhaar' | 'pet' | 'complete'
 
 const speciesOptions = [
   { value: 'dog', label: 'Dog', icon: '🐕' },
@@ -32,12 +34,26 @@ export default function OnboardingPage() {
   // Profile data
   const [profile, setProfile] = useState({
     name: '',
+    countryCode: '+91',
     phone: '',
-    address: '',
+    addressLine1: '',
+    addressLine2: '',
+    landmark: '',
     city: '',
+    state: '',
+    country: 'India',
     zipCode: '',
+    latitude: null as number | null,
+    longitude: null as number | null,
+    googleMapsLink: '',
     bio: '',
     avatar: '',
+  })
+
+  // Aadhaar data
+  const [aadhaar, setAadhaar] = useState({
+    number: '',
+    image: '',
   })
 
   // Pet data (for owners)
@@ -50,12 +66,12 @@ export default function OnboardingPage() {
     medicalNotes: '',
   })
 
-  // Get pending role from localStorage
+  // Get pending role from localStorage (saved during signup)
   const [pendingRole, setPendingRole] = useState<string | null>(null)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const role = localStorage.getItem('pendingRole')
+      const role = localStorage.getItem('pawzr_signup_role')
       setPendingRole(role)
     }
   }, [])
@@ -72,6 +88,8 @@ export default function OnboardingPage() {
       router.push('/signup')
     }
   }, [status, router])
+
+  const userRole = pendingRole || session?.user?.role
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,19 +115,17 @@ export default function OnboardingPage() {
         return
       }
 
-      // Update session
-      await update({ name: profile.name })
+      // Update session with name AND role
+      await update({ name: profile.name, role: pendingRole || session?.user?.role })
 
       // Clear pending role
-      localStorage.removeItem('pendingRole')
+      localStorage.removeItem('pawzr_signup_role')
 
-      // If owner, go to pet step, otherwise complete
-      const userRole = pendingRole || session?.user?.role
-      if (userRole === 'OWNER') {
-        setStep('pet')
+      // Go to Aadhaar step for OWNER and LOVER roles
+      if (userRole === 'OWNER' || userRole === 'LOVER') {
+        setStep('aadhaar')
       } else {
         setStep('complete')
-        // Redirect to dashboard after a moment
         setTimeout(() => {
           router.push('/dashboard')
         }, 2000)
@@ -118,6 +134,75 @@ export default function OnboardingPage() {
       setError('An unexpected error occurred')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleAadhaarSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+
+    // Validate Aadhaar number
+    if (aadhaar.number && aadhaar.number.length !== 12) {
+      setError('Aadhaar number must be 12 digits')
+      return
+    }
+
+    if (aadhaar.number && !/^\d{12}$/.test(aadhaar.number)) {
+      setError('Aadhaar number must contain only digits')
+      return
+    }
+
+    if (aadhaar.number && !aadhaar.image) {
+      setError('Please upload your Aadhaar card image')
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      // Submit Aadhaar if provided
+      if (aadhaar.number && aadhaar.image) {
+        const res = await fetch('/api/users/me/aadhaar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            aadhaarNumber: aadhaar.number,
+            aadhaarImage: aadhaar.image,
+          }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json()
+          setError(data.error || 'Failed to submit Aadhaar')
+          setIsLoading(false)
+          return
+        }
+      }
+
+      // Go to pet step for owners, otherwise complete
+      if (userRole === 'OWNER') {
+        setStep('pet')
+      } else {
+        setStep('complete')
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 2000)
+      }
+    } catch {
+      setError('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const skipAadhaar = () => {
+    if (userRole === 'OWNER') {
+      setStep('pet')
+    } else {
+      setStep('complete')
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000)
     }
   }
 
@@ -148,7 +233,6 @@ export default function OnboardingPage() {
       }
 
       setStep('complete')
-      // Redirect to dashboard after a moment
       setTimeout(() => {
         router.push('/dashboard')
       }, 2000)
@@ -166,6 +250,11 @@ export default function OnboardingPage() {
     }, 2000)
   }
 
+  const handleAadhaarNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 12)
+    setAadhaar({ ...aadhaar, number: value })
+  }
+
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -174,10 +263,25 @@ export default function OnboardingPage() {
     )
   }
 
-  // Progress indicator
-  const userRole = pendingRole || session?.user?.role
-  const totalSteps = userRole === 'OWNER' ? 3 : 2
-  const currentStep = step === 'profile' ? 1 : step === 'pet' ? 2 : totalSteps
+  // Progress indicator - calculate total steps based on role
+  const getTotalSteps = () => {
+    if (userRole === 'OWNER') return 4 // profile -> aadhaar -> pet -> complete
+    if (userRole === 'LOVER') return 3 // profile -> aadhaar -> complete
+    return 2 // profile -> complete
+  }
+
+  const getCurrentStepNumber = () => {
+    switch (step) {
+      case 'profile': return 1
+      case 'aadhaar': return 2
+      case 'pet': return 3
+      case 'complete': return getTotalSteps()
+      default: return 1
+    }
+  }
+
+  const totalSteps = getTotalSteps()
+  const currentStep = getCurrentStepNumber()
 
   return (
     <div className="w-full max-w-lg">
@@ -187,6 +291,7 @@ export default function OnboardingPage() {
           <span className="text-sm text-gray-600">Step {currentStep} of {totalSteps}</span>
           <span className="text-sm text-gray-600">
             {step === 'profile' && 'Your Profile'}
+            {step === 'aadhaar' && 'Verify Identity'}
             {step === 'pet' && 'Add Your Pet'}
             {step === 'complete' && 'All Done!'}
           </span>
@@ -228,35 +333,30 @@ export default function OnboardingPage() {
               required
             />
 
-            <Input
+            <PhoneInput
               label="Phone Number"
-              type="tel"
-              value={profile.phone}
-              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-              placeholder="+91 9876543210"
+              countryCode={profile.countryCode}
+              phone={profile.phone}
+              onCountryCodeChange={(code) => setProfile({ ...profile, countryCode: code })}
+              onPhoneChange={(phone) => setProfile({ ...profile, phone })}
             />
 
-            <Input
-              label="Address"
-              value={profile.address}
-              onChange={(e) => setProfile({ ...profile, address: e.target.value })}
-              placeholder="Street address"
+            <AddressForm
+              address={{
+                addressLine1: profile.addressLine1,
+                addressLine2: profile.addressLine2,
+                landmark: profile.landmark,
+                city: profile.city,
+                state: profile.state,
+                country: profile.country,
+                zipCode: profile.zipCode,
+                latitude: profile.latitude,
+                longitude: profile.longitude,
+                googleMapsLink: profile.googleMapsLink,
+              }}
+              onChange={(addressData) => setProfile({ ...profile, ...addressData })}
+              showLocationPicker={true}
             />
-
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="City"
-                value={profile.city}
-                onChange={(e) => setProfile({ ...profile, city: e.target.value })}
-                placeholder="Mumbai"
-              />
-              <Input
-                label="PIN Code"
-                value={profile.zipCode}
-                onChange={(e) => setProfile({ ...profile, zipCode: e.target.value })}
-                placeholder="400001"
-              />
-            </div>
 
             <Textarea
               label="Bio (optional)"
@@ -269,6 +369,75 @@ export default function OnboardingPage() {
             <Button type="submit" className="w-full" isLoading={isLoading}>
               Continue
             </Button>
+          </form>
+        </Card>
+      )}
+
+      {/* Aadhaar Step (Owners and Lovers) */}
+      {step === 'aadhaar' && (
+        <Card variant="elevated">
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-2">🪪</div>
+            <h1 className="text-2xl font-bold text-gray-900">Verify Your Identity</h1>
+            <p className="text-gray-600 mt-1">Get a verified badge on your profile</p>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleAadhaarSubmit} className="space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
+              <div className="flex items-start gap-3">
+                <span className="text-xl">✅</span>
+                <div>
+                  <p className="font-medium text-blue-900">Why verify?</p>
+                  <ul className="text-sm text-blue-700 mt-1 space-y-1">
+                    <li>Get a verified badge on your profile</li>
+                    <li>Build trust with other users</li>
+                    <li>Access premium features</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <Input
+              label="Aadhaar Number"
+              type="text"
+              value={aadhaar.number}
+              onChange={handleAadhaarNumberChange}
+              placeholder="Enter 12-digit Aadhaar number"
+              maxLength={12}
+            />
+            <p className="text-xs text-gray-500 -mt-2">
+              {aadhaar.number.length}/12 digits
+            </p>
+
+            <ImageUpload
+              currentImage={aadhaar.image}
+              onUpload={(url) => setAadhaar({ ...aadhaar, image: url })}
+              label="Upload Aadhaar Card (Front)"
+            />
+
+            <p className="text-xs text-gray-500">
+              Your Aadhaar details are kept confidential and used only for verification.
+            </p>
+
+            <div className="space-y-2">
+              <Button
+                type="submit"
+                className="w-full"
+                isLoading={isLoading}
+                disabled={!aadhaar.number && !aadhaar.image}
+              >
+                {aadhaar.number || aadhaar.image ? 'Submit & Continue' : 'Continue'}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={skipAadhaar}>
+                Skip for now
+              </Button>
+            </div>
           </form>
         </Card>
       )}

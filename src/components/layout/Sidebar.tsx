@@ -119,6 +119,11 @@ const vetNavItems: NavItem[] = [
     icon: <CalendarIcon />,
   },
   {
+    label: 'Schedule',
+    href: '/dashboard/vet/schedule',
+    icon: <CalendarIcon />,
+  },
+  {
     label: 'Patients',
     href: '/dashboard/vet/patients',
     icon: <PetIcon />,
@@ -277,7 +282,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-gray-200">
           <Link href="/" className="text-xl font-bold text-orange-600">
-            Pawzr
+            🐾 Pawzr
           </Link>
           <button
             onClick={onClose}

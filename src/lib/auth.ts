@@ -8,7 +8,8 @@ import { prisma } from './prisma'
 import type { Adapter } from 'next-auth/adapters'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as Adapter,
+  // Note: Not using adapter with JWT strategy to avoid conflicts
+  // adapter: PrismaAdapter(prisma) as Adapter,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -119,27 +120,58 @@ export const authOptions: NextAuthOptions = {
     error: '/login',
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      if (user) {
-        token.id = user.id
-        token.role = user.role
+    async jwt({ token, user, account, trigger, session }) {
+      // On initial sign in
+      if (account && user) {
+        // For OAuth providers, ensure user exists in database and get their data
+        if (account.provider === 'google' || account.provider === 'apple') {
+          let dbUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          })
+
+          // If user doesn't exist, create them (OAuth user)
+          if (!dbUser) {
+            // Get the role from localStorage via the signup flow
+            // Default to OWNER, will be updated in onboarding
+            dbUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || 'User',
+                avatar: user.image,
+                role: 'OWNER', // Default role, updated in onboarding
+              },
+            })
+          }
+
+          token.id = dbUser.id
+          token.role = dbUser.role
+          token.email = dbUser.email
+        } else {
+          // For credentials provider
+          token.id = user.id
+          token.role = user.role
+          token.email = user.email
+        }
       }
-      // Handle session updates
+
+      // Handle session updates (e.g., after role change in onboarding)
       if (trigger === 'update' && session) {
-        token.name = session.name
-        token.role = session.role
+        if (session.name) token.name = session.name
+        if (session.role) token.role = session.role
       }
+
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as string
+        session.user.email = token.email as string
       }
       return session
     },
     async signIn({ user, account }) {
-      // For OAuth sign-ins, check if user exists and handle role
+      // For OAuth sign-ins, check if user is suspended
       if (account?.provider === 'google' || account?.provider === 'apple') {
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
@@ -147,12 +179,6 @@ export const authOptions: NextAuthOptions = {
 
         if (existingUser?.suspended) {
           return false
-        }
-
-        // If new OAuth user, set default role (will be updated in onboarding)
-        if (!existingUser) {
-          // User will be created by adapter, we'll update role in onboarding
-          return true
         }
       }
       return true

@@ -11,7 +11,7 @@ export default function AuthLayout({
       <header className="py-6 px-4">
         <div className="container mx-auto">
           <Link href="/" className="text-2xl font-bold text-orange-600">
-            Pawzr
+            🐾 Pawzr
           </Link>
         </div>
       </header>

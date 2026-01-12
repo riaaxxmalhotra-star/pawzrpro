@@ -3,16 +3,29 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Helper to get user ID from session (using email as fallback)
+async function getUserId(session: any): Promise<string | null> {
+  if (!session?.user?.email) return null
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  })
+
+  return user?.id || null
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
+    const userId = await getUserId(session)
 
-    if (!session?.user?.id) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const pets = await prisma.pet.findMany({
-      where: { ownerId: session.user.id },
+      where: { ownerId: userId },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -26,8 +39,9 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
+    const userId = await getUserId(session)
 
-    if (!session?.user?.id) {
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -40,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     const pet = await prisma.pet.create({
       data: {
-        ownerId: session.user.id,
+        ownerId: userId,
         name,
         species,
         breed,

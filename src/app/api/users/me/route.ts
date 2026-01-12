@@ -6,33 +6,81 @@ import { prisma } from '@/lib/prisma'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    let user = await prisma.user.findUnique({
+      where: { email: session.user.email },
       select: {
         id: true,
         name: true,
         email: true,
+        countryCode: true,
         phone: true,
-        address: true,
+        addressLine1: true,
+        addressLine2: true,
+        landmark: true,
         city: true,
+        state: true,
+        country: true,
         zipCode: true,
+        address: true,
+        latitude: true,
+        longitude: true,
+        googleMapsLink: true,
+        liveLocationEnabled: true,
         bio: true,
+        instagram: true,
         avatar: true,
         role: true,
         verified: true,
         emailVerified: true,
         phoneVerified: true,
+        aadhaarNumber: true,
         aadhaarImage: true,
         aadhaarVerified: true,
       },
     })
 
+    // If user doesn't exist, create them (OAuth user case)
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      user = await prisma.user.create({
+        data: {
+          email: session.user.email,
+          name: session.user.name || 'User',
+          role: 'OWNER',
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          countryCode: true,
+          phone: true,
+          addressLine1: true,
+          addressLine2: true,
+          landmark: true,
+          city: true,
+          state: true,
+          country: true,
+          zipCode: true,
+          address: true,
+          latitude: true,
+          longitude: true,
+          googleMapsLink: true,
+          liveLocationEnabled: true,
+          bio: true,
+          instagram: true,
+          avatar: true,
+          role: true,
+          verified: true,
+          emailVerified: true,
+          phoneVerified: true,
+          aadhaarNumber: true,
+          aadhaarImage: true,
+          aadhaarVerified: true,
+        },
+      })
     }
 
     return NextResponse.json(user)
@@ -45,27 +93,71 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await req.json()
-    const { name, phone, address, city, zipCode, bio, avatar, role, profileComplete } = body
+    const {
+      name,
+      countryCode,
+      phone,
+      addressLine1,
+      addressLine2,
+      landmark,
+      city,
+      state,
+      country,
+      zipCode,
+      address,
+      latitude,
+      longitude,
+      googleMapsLink,
+      bio,
+      instagram,
+      avatar,
+      role,
+      profileComplete,
+    } = body
 
-    // Get current user to check if role is being changed
-    const currentUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { role: true },
+    // Find user by email (more reliable than ID for OAuth users)
+    let currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, role: true },
     })
+
+    // If user doesn't exist, create them (OAuth user case)
+    if (!currentUser) {
+      currentUser = await prisma.user.create({
+        data: {
+          email: session.user.email,
+          name: session.user.name || name || 'User',
+          role: role || 'OWNER',
+        },
+        select: { id: true, role: true },
+      })
+    }
+
+    const userId = currentUser.id
 
     // Build update data
     const updateData: Record<string, unknown> = {
       name,
+      countryCode,
       phone,
-      address,
+      addressLine1,
+      addressLine2,
+      landmark,
       city,
+      state,
+      country,
       zipCode,
+      address,
+      latitude,
+      longitude,
+      googleMapsLink,
       bio,
+      instagram,
       avatar,
     }
 
@@ -81,26 +173,26 @@ export async function PUT(req: NextRequest) {
       if (role !== currentUser?.role) {
         if (role === 'LOVER') {
           await prisma.loverProfile.upsert({
-            where: { userId: session.user.id },
-            create: { userId: session.user.id },
+            where: { userId },
+            create: { userId },
             update: {},
           })
         } else if (role === 'VET') {
           await prisma.vetProfile.upsert({
-            where: { userId: session.user.id },
-            create: { userId: session.user.id },
+            where: { userId },
+            create: { userId },
             update: {},
           })
         } else if (role === 'GROOMER') {
           await prisma.groomerProfile.upsert({
-            where: { userId: session.user.id },
-            create: { userId: session.user.id },
+            where: { userId },
+            create: { userId },
             update: {},
           })
         } else if (role === 'SUPPLIER') {
           await prisma.supplierProfile.upsert({
-            where: { userId: session.user.id },
-            create: { userId: session.user.id },
+            where: { userId },
+            create: { userId },
             update: {},
           })
         }
@@ -108,17 +200,27 @@ export async function PUT(req: NextRequest) {
     }
 
     const user = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: updateData,
       select: {
         id: true,
         name: true,
         email: true,
+        countryCode: true,
         phone: true,
-        address: true,
+        addressLine1: true,
+        addressLine2: true,
+        landmark: true,
         city: true,
+        state: true,
+        country: true,
         zipCode: true,
+        address: true,
+        latitude: true,
+        longitude: true,
+        googleMapsLink: true,
         bio: true,
+        instagram: true,
         avatar: true,
         role: true,
         verified: true,

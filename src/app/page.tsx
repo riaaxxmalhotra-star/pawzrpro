@@ -5,7 +5,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100">
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex items-center justify-between">
-        <span className="text-2xl font-bold text-orange-600">Pawzr</span>
+        <span className="text-2xl font-bold text-orange-600">🐾 Pawzr</span>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-gray-600 hover:text-gray-900">
             Sign In
@@ -23,7 +23,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold text-orange-600 mb-4">
-            Pawzr
+            🐾 Pawzr
           </h1>
           <p className="text-xl md:text-2xl text-gray-700 mb-8">
             The community where pets and pet lovers connect
@@ -210,7 +210,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-8 mt-16">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-lg font-semibold text-white mb-2">Pawzr</p>
+          <p className="text-lg font-semibold text-white mb-2">🐾 Pawzr</p>
           <p className="text-sm">The pet community marketplace</p>
           <p className="text-xs mt-4">&copy; {new Date().getFullYear()} Pawzr. All rights reserved.</p>
         </div>

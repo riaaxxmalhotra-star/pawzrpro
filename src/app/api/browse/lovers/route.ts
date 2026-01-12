@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
         avatar: provider.avatar,
         bio: provider.bio,
         city: provider.city,
+        aadhaarVerified: provider.aadhaarVerified,
         loverProfile: provider.loverProfile,
         services: provider.services,
         averageRating: Math.round(averageRating * 10) / 10,

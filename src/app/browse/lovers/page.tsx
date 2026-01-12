@@ -10,6 +10,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Badge } from '@/components/ui/Badge'
 import { LoadingSpinner } from '@/components/ui/Loading'
 import { StarRating } from '@/components/shared/StarRating'
+import { VerifiedBadge } from '@/components/shared/VerifiedBadge'
 import { formatCurrency, serviceTypeDisplayNames } from '@/lib/utils'
 
 interface Provider {
@@ -18,6 +19,7 @@ interface Provider {
   avatar?: string
   bio?: string
   city?: string
+  aadhaarVerified?: boolean
   loverProfile?: {
     experience?: string
     hourlyRate?: number
@@ -140,7 +142,10 @@ export default function BrowseLoversPage() {
                     <div className="flex items-start gap-4 mb-4">
                       <Avatar src={provider.avatar} name={provider.name} size="lg" />
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-900 truncate">{provider.name}</h3>
+                        <h3 className="font-semibold text-gray-900 truncate flex items-center gap-1">
+                          {provider.name}
+                          {provider.aadhaarVerified && <VerifiedBadge size="sm" />}
+                        </h3>
                         {provider.city && (
                           <p className="text-sm text-gray-500">{provider.city}</p>
                         )}

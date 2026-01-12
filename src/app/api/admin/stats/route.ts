@@ -7,11 +7,17 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    if (session.user.role !== 'ADMIN') {
+    // Get user from database to check role
+    const currentUser = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true },
+    })
+
+    if (currentUser?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -34,18 +40,90 @@ export async function GET() {
     // Get total orders and platform revenue
     const orders = await prisma.order.aggregate({
       _count: { id: true },
-      _sum: { platformFee: true },
+      _sum: { platformFee: true, total: true },
     })
 
     const totalOrders = orders._count.id
     const platformRevenue = orders._sum.platformFee || 0
+    const totalSales = orders._sum.total || 0
 
-    // Get pending verifications (vets and groomers not yet verified)
-    const pendingVerifications = await prisma.user.count({
+    // Get pending professional verifications (vets and groomers)
+    const pendingProfessionalVerifications = await prisma.user.count({
       where: {
         role: { in: ['VET', 'GROOMER'] },
         verified: false,
       },
+    })
+
+    // Get pending Aadhaar verifications
+    const pendingAadhaarVerifications = await prisma.user.count({
+      where: {
+        aadhaarImage: { not: null },
+        aadhaarVerified: false,
+      },
+    })
+
+    // Get user growth - last 7 days
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    const newUsersLast7Days = await prisma.user.count({
+      where: {
+        createdAt: { gte: sevenDaysAgo },
+      },
+    })
+
+    // Get user growth - last 30 days
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    const newUsersLast30Days = await prisma.user.count({
+      where: {
+        createdAt: { gte: thirtyDaysAgo },
+      },
+    })
+
+    // Get recent users by day (last 7 days)
+    const dailyGrowth = []
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      date.setHours(0, 0, 0, 0)
+
+      const nextDate = new Date(date)
+      nextDate.setDate(nextDate.getDate() + 1)
+
+      const count = await prisma.user.count({
+        where: {
+          createdAt: {
+            gte: date,
+            lt: nextDate,
+          },
+        },
+      })
+
+      dailyGrowth.push({
+        date: date.toISOString().split('T')[0],
+        count,
+      })
+    }
+
+    // Get verified vs unverified users
+    const verifiedUsers = await prisma.user.count({
+      where: { aadhaarVerified: true },
+    })
+
+    // Get recent bookings count
+    const recentBookings = await prisma.booking.count({
+      where: {
+        createdAt: { gte: sevenDaysAgo },
+      },
+    })
+
+    // Get booking revenue (sum of prices)
+    const bookingRevenue = await prisma.booking.aggregate({
+      _sum: { price: true },
+      where: { status: 'COMPLETED' },
     })
 
     return NextResponse.json({
@@ -54,7 +132,15 @@ export async function GET() {
       totalBookings,
       totalOrders,
       platformRevenue,
-      pendingVerifications,
+      totalSales,
+      pendingProfessionalVerifications,
+      pendingAadhaarVerifications,
+      newUsersLast7Days,
+      newUsersLast30Days,
+      dailyGrowth,
+      verifiedUsers,
+      recentBookings,
+      bookingRevenue: bookingRevenue._sum.price || 0,
     })
   } catch (error) {
     console.error('Failed to fetch admin stats:', error)

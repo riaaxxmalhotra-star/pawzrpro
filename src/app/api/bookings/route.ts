@@ -22,10 +22,10 @@ export async function GET() {
       where: whereClause,
       include: {
         owner: {
-          select: { id: true, name: true, avatar: true },
+          select: { id: true, name: true, avatar: true, aadhaarVerified: true },
         },
         provider: {
-          select: { id: true, name: true, avatar: true },
+          select: { id: true, name: true, avatar: true, aadhaarVerified: true },
         },
         pet: {
           select: { id: true, name: true, species: true },

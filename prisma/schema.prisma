@@ -22,14 +22,40 @@ model User {
   name          String?
   role          String    @default("OWNER")
   avatar        String?
+
+  // Phone with country code
+  countryCode   String?   @default("+91")
   phone         String?
-  address       String?
+
+  // Address fields
+  addressLine1  String?
+  addressLine2  String?
+  landmark      String?
   city          String?
+  state         String?
+  country       String?   @default("India")
   zipCode       String?
+
+  // Legacy address field (for backward compatibility)
+  address       String?
+
+  // Location fields
+  latitude      Float?
+  longitude     Float?
+  googleMapsLink String?
+
+  // Live location
+  liveLocationEnabled Boolean @default(false)
+  lastLatitude   Float?
+  lastLongitude  Float?
+  lastLocationUpdate DateTime?
+
   bio           String?
+  instagram     String?
   verified      Boolean   @default(false)
   suspended     Boolean   @default(false)
   profileComplete Boolean @default(false)
+  aadhaarNumber   String?
   aadhaarImage    String?
   aadhaarVerified Boolean  @default(false)
   createdAt     DateTime  @default(now())

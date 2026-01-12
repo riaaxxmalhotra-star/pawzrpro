@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pawzr - Pet Community Marketplace",
+  title: "🐾 Pawzr - Pet Community Marketplace",
   description: "Connect with pet lovers, vets, groomers, and suppliers. Find trusted pet services and products.",
 };
 

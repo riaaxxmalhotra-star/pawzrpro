@@ -38,6 +38,7 @@ export default function SupplierProfilePage() {
     description: '',
     logo: '',
     website: '',
+    instagram: '',
     phone: '',
     address: '',
     city: '',
@@ -59,6 +60,7 @@ export default function SupplierProfilePage() {
           description: data.description || '',
           logo: data.logo || '',
           website: data.website || '',
+          instagram: data.user?.instagram || '',
           phone: data.user?.phone || '',
           address: data.user?.address || '',
           city: data.user?.city || '',
@@ -150,6 +152,13 @@ export default function SupplierProfilePage() {
             value={formData.website}
             onChange={(e) => setFormData({ ...formData, website: e.target.value })}
             placeholder="https://www.mystore.com"
+          />
+
+          <Input
+            label="Instagram Handle (optional)"
+            value={formData.instagram}
+            onChange={(e) => setFormData({ ...formData, instagram: e.target.value.replace('@', '') })}
+            placeholder="your_store_instagram"
           />
 
           <div className="border-t pt-6">
