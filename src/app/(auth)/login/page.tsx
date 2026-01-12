@@ -46,11 +46,11 @@ function LoginForm() {
     try {
       // Check if we're on a native platform
       if (isNativePlatform()) {
-        // For mobile: open our mobile signin page in system browser
-        // This page handles CSRF and redirects through NextAuth's proper OAuth flow
-        // Ensures Google sees a legitimate browser request (not WebView)
+        // For mobile: open NextAuth signin page directly in system browser
+        // This ensures Google sees a legitimate browser request (not WebView)
         const baseUrl = 'https://pawzrpro.vercel.app'
-        await openAuthUrl(`${baseUrl}/api/auth/mobile-signin`)
+        const mobileCallback = encodeURIComponent(`${baseUrl}/api/auth/mobile-callback`)
+        await openAuthUrl(`${baseUrl}/api/auth/signin?callbackUrl=${mobileCallback}`)
       } else {
         // Use standard NextAuth flow for web
         await signIn('google', {
