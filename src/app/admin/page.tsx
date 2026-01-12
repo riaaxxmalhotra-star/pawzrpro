@@ -84,11 +84,11 @@ export default function AdminDashboard() {
 
   const quickLinks = [
     { label: 'Manage Users', href: '/admin/users', icon: '👥', description: 'View, verify, suspend users' },
+    { label: 'Providers', href: '/admin/providers', icon: '🏥', description: 'Vets, Groomers, Suppliers' },
     { label: 'Pending KYC', href: '/admin/users?filter=pending-aadhaar', icon: '🪪', description: `${stats?.pendingAadhaarVerifications || 0} pending` },
-    { label: 'Pending Verifications', href: '/admin/users?filter=pending', icon: '⏳', description: `${stats?.pendingProfessionalVerifications || 0} pending` },
-    { label: 'View Bookings', href: '/admin/bookings', icon: '📅', description: 'All bookings' },
-    { label: 'View Orders', href: '/admin/orders', icon: '📦', description: 'All orders' },
-    { label: 'Manage Events', href: '/admin/events', icon: '🎉', description: 'Create and manage' },
+    { label: 'Bookings', href: '/admin/bookings', icon: '📅', description: 'All bookings' },
+    { label: 'Orders', href: '/admin/orders', icon: '📦', description: 'All orders' },
+    { label: 'Events', href: '/admin/events', icon: '🎉', description: 'Create and manage' },
   ]
 
   const maxDailyCount = Math.max(...(stats?.dailyGrowth?.map(d => d.count) || [1]), 1)
