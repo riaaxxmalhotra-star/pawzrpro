@@ -5,7 +5,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/ui/Loading'
-import { isNativePlatform, openAuthUrl, getGoogleOAuthUrl } from '@/lib/capacitor'
+import { isNativePlatform, nativeGoogleSignIn } from '@/lib/capacitor'
 
 type Step = 'role' | 'signup' | 'already_logged_in'
 
@@ -77,8 +77,12 @@ export default function SignupPage() {
 
     try {
       if (isNativePlatform()) {
-        // For mobile: open Google OAuth directly in Safari
-        await openAuthUrl(getGoogleOAuthUrl())
+        // Use native Google Sign-In SDK
+        const result = await nativeGoogleSignIn()
+        if (!result.success) {
+          setError(result.error || 'Sign up failed')
+          setIsLoading(false)
+        }
       } else {
         // Use standard NextAuth flow for web
         signIn('google', { callbackUrl: '/onboarding' })

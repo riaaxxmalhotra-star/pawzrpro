@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/Loading'
-import { isNativePlatform, openAuthUrl, getGoogleOAuthUrl } from '@/lib/capacitor'
+import { isNativePlatform, nativeGoogleSignIn } from '@/lib/capacitor'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -45,9 +45,12 @@ function LoginForm() {
 
     try {
       if (isNativePlatform()) {
-        // For mobile: open Google OAuth directly in Safari
-        // This bypasses the WebView and opens in the real browser
-        await openAuthUrl(getGoogleOAuthUrl())
+        // Use native Google Sign-In SDK
+        const result = await nativeGoogleSignIn()
+        if (!result.success) {
+          setError(result.error || 'Sign in failed')
+          setIsLoading(false)
+        }
       } else {
         // Use standard NextAuth flow for web
         await signIn('google', {

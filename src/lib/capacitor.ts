@@ -3,8 +3,10 @@
 import { App } from '@capacitor/app'
 import { Browser } from '@capacitor/browser'
 import { Capacitor } from '@capacitor/core'
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth'
 
 let initialized = false
+let googleAuthInitialized = false
 let authCallbackHandler: ((token: string, userId: string) => void) | null = null
 
 export function initCapacitorApp() {
@@ -93,19 +95,54 @@ export function getPlatform(): string {
 
 export async function openAuthUrl(url: string): Promise<void> {
   if (Capacitor.isNativePlatform()) {
-    // Use Browser plugin to open external URL in Safari
     await Browser.open({ url })
   } else {
     window.location.href = url
   }
 }
 
-// Direct Google OAuth - bypasses NextAuth signin page
-export function getGoogleOAuthUrl(): string {
-  const clientId = '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com'
-  const redirectUri = encodeURIComponent('https://pawzrpro.vercel.app/api/auth/callback/google')
-  const scope = encodeURIComponent('openid email profile')
-  const state = encodeURIComponent(JSON.stringify({ callbackUrl: '/api/auth/mobile-callback' }))
+// Initialize Google Auth for native platforms
+export async function initGoogleAuth(): Promise<void> {
+  if (googleAuthInitialized || !Capacitor.isNativePlatform()) return
 
-  return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&prompt=select_account`
+  GoogleAuth.initialize({
+    clientId: '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com',
+    scopes: ['profile', 'email'],
+    grantOfflineAccess: true,
+  })
+  googleAuthInitialized = true
+}
+
+// Native Google Sign-In
+export async function nativeGoogleSignIn(): Promise<{ success: boolean; error?: string }> {
+  try {
+    await initGoogleAuth()
+
+    const result = await GoogleAuth.signIn()
+
+    if (result.authentication?.idToken) {
+      // Exchange Google token with our backend
+      const response = await fetch('https://pawzrpro.vercel.app/api/auth/google-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          idToken: result.authentication.idToken,
+          accessToken: result.authentication.accessToken,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        window.location.href = data.redirectTo || '/dashboard'
+        return { success: true }
+      } else {
+        return { success: false, error: 'Failed to authenticate with server' }
+      }
+    }
+
+    return { success: false, error: 'No ID token received' }
+  } catch (error: any) {
+    console.error('Google sign in error:', error)
+    return { success: false, error: error.message || 'Sign in failed' }
+  }
 }

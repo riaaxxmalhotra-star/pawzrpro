@@ -6,15 +6,18 @@ const config: CapacitorConfig = {
   webDir: 'public',
   server: {
     url: 'https://pawzrpro.vercel.app',
-    cleartext: true,
-    // Only allow navigation to our domain - external URLs open in Safari
-    allowNavigation: [
-      'pawzrpro.vercel.app'
-    ]
+    cleartext: true
   },
   ios: {
     allowsLinkPreview: false,
     scrollEnabled: true
+  },
+  plugins: {
+    GoogleAuth: {
+      scopes: ['profile', 'email'],
+      serverClientId: '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com',
+      forceCodeForRefreshToken: true
+    }
   }
 };
 
