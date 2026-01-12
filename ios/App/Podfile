@@ -9,8 +9,8 @@ target 'App' do
   pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorBrowser', :path => '../../node_modules/@capacitor/browser'
 
-  # Google Sign-In - use version compatible with the plugin
-  pod 'GoogleSignIn', '~> 6.2.4'
+  # Google Sign-In plugin
+  pod 'CodetrixStudioCapacitorGoogleAuth', :path => '../../node_modules/@codetrix-studio/capacitor-google-auth'
 end
 
 post_install do |installer|
