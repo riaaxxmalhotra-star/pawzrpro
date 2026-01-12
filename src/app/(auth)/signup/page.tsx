@@ -5,6 +5,7 @@ import { signIn, signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LoadingSpinner } from '@/components/ui/Loading'
+import { isNativePlatform, openAuthUrl } from '@/lib/capacitor'
 
 type Step = 'role' | 'signup' | 'already_logged_in'
 
@@ -74,8 +75,23 @@ export default function SignupPage() {
       localStorage.setItem('pawzr_signup_role', selectedRole)
     }
 
-    // OAuth will work in WebView since app loads from Vercel (same domain)
-    signIn('google', { callbackUrl: '/onboarding' })
+    try {
+      // Check if we're on a native platform
+      if (isNativePlatform()) {
+        // For mobile: open our mobile signin page in system browser
+        // This page handles CSRF and redirects through NextAuth's proper OAuth flow
+        // Ensures Google sees a legitimate browser request (not WebView)
+        const baseUrl = 'https://pawzrpro.vercel.app'
+        await openAuthUrl(`${baseUrl}/api/auth/mobile-signin`)
+      } else {
+        // Use standard NextAuth flow for web
+        signIn('google', { callbackUrl: '/onboarding' })
+      }
+    } catch (err) {
+      console.error('Sign up error:', err)
+      setError('An error occurred. Please try again.')
+      setIsLoading(false)
+    }
   }
 
   const goBack = () => {
@@ -135,8 +151,8 @@ export default function SignupPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🐾</div>
-          <h1 className="text-2xl font-bold text-gray-900">Join Pawzr</h1>
-          <p className="text-gray-500 mt-1">Choose how you want to use Pawzr</p>
+          <h1 className="text-3xl font-black text-orange-600" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>Pawzr</h1>
+          <p className="text-gray-500 mt-2">Choose how you want to join</p>
         </div>
 
         {/* Role Cards */}

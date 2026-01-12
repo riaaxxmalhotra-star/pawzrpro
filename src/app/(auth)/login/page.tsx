@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/Loading'
+import { isNativePlatform, openAuthUrl } from '@/lib/capacitor'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -41,8 +42,27 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError(null)
-    // OAuth will work in WebView since app loads from Vercel (same domain)
-    signIn('google', { callbackUrl })
+
+    try {
+      // Check if we're on a native platform
+      if (isNativePlatform()) {
+        // For mobile: open our mobile signin page in system browser
+        // This page handles CSRF and redirects through NextAuth's proper OAuth flow
+        // Ensures Google sees a legitimate browser request (not WebView)
+        const baseUrl = 'https://pawzrpro.vercel.app'
+        await openAuthUrl(`${baseUrl}/api/auth/mobile-signin`)
+      } else {
+        // Use standard NextAuth flow for web
+        await signIn('google', {
+          callbackUrl,
+          redirect: true
+        })
+      }
+    } catch (err) {
+      console.error('Sign in error:', err)
+      setError('An error occurred. Please try again.')
+      setIsLoading(false)
+    }
   }
 
   const handleSignOut = async () => {
@@ -92,7 +112,7 @@ function LoginForm() {
       {/* Logo */}
       <div className="text-center mb-10">
         <div className="text-6xl mb-3">🐾</div>
-        <h1 className="text-3xl font-bold text-orange-600">Pawzr</h1>
+        <h1 className="text-3xl font-black text-orange-600" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>Pawzr</h1>
         <p className="text-gray-500 mt-2">Sign in to continue</p>
       </div>
 
