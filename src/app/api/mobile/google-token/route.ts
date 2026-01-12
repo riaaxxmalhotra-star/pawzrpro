@@ -3,10 +3,12 @@ import { prisma } from '@/lib/prisma'
 import { encode } from 'next-auth/jwt'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
   try {
-    const { accessToken, idToken } = await request.json()
+    const body = await request.json()
+    const { accessToken, idToken } = body
 
     if (!accessToken) {
       return NextResponse.json({ error: 'Missing access token' }, { status: 400 })
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
           email: googleUser.email,
           name: googleUser.name || 'User',
           avatar: googleUser.picture,
-          role: 'OWNER', // Default role, updated in onboarding
+          role: 'OWNER',
         },
       })
     }
@@ -59,8 +61,7 @@ export async function POST(request: NextRequest) {
       secret: process.env.NEXTAUTH_SECRET || 'your-secret-key',
     })
 
-    // Create response with session cookie and token for native apps
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -70,31 +71,7 @@ export async function POST(request: NextRequest) {
         image: user.avatar,
       },
       token: jwtToken,
-      redirectTo: '/onboarding',
     })
-
-    // Set the session cookie
-    const isProduction = process.env.NODE_ENV === 'production'
-    response.cookies.set('next-auth.session-token', jwtToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-    })
-
-    // Also set the secure cookie for production
-    if (isProduction) {
-      response.cookies.set('__Secure-next-auth.session-token', jwtToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 30 * 24 * 60 * 60,
-      })
-    }
-
-    return response
   } catch (error) {
     console.error('Google token exchange error:', error)
     return NextResponse.json({ error: 'Failed to authenticate' }, { status: 500 })
