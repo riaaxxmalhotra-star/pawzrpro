@@ -6,8 +6,6 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/Loading'
-import { isNativeApp } from '@/lib/native-auth'
-import { Browser } from '@capacitor/browser'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -43,31 +41,8 @@ function LoginForm() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError(null)
-
-    if (isNativeApp()) {
-      const baseUrl = 'https://pawzrpro.vercel.app'
-      const authUrl = `${baseUrl}/api/auth/signin/google?callbackUrl=${encodeURIComponent(baseUrl + callbackUrl)}`
-
-      await Browser.open({ url: authUrl, presentationStyle: 'popover' })
-
-      const checkSession = setInterval(async () => {
-        const res = await fetch('/api/auth/session')
-        const data = await res.json()
-        if (data?.user) {
-          clearInterval(checkSession)
-          setIsLoading(false)
-          try { await Browser.close() } catch {}
-          router.push(callbackUrl)
-        }
-      }, 1000)
-
-      setTimeout(() => {
-        clearInterval(checkSession)
-        setIsLoading(false)
-      }, 120000)
-    } else {
-      signIn('google', { callbackUrl })
-    }
+    // OAuth will work in WebView since app loads from Vercel (same domain)
+    signIn('google', { callbackUrl })
   }
 
   const handleSignOut = async () => {
