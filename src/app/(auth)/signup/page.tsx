@@ -76,12 +76,10 @@ export default function SignupPage() {
     }
 
     try {
-      // Check if we're on a native platform
       if (isNativePlatform()) {
-        // Open NextAuth signin in Safari browser
-        const baseUrl = 'https://pawzrpro.vercel.app'
-        const mobileCallback = encodeURIComponent(`${baseUrl}/api/auth/mobile-callback`)
-        await openAuthUrl(`${baseUrl}/api/auth/signin?callbackUrl=${mobileCallback}`)
+        // For mobile: open NextAuth signin page in Safari
+        const callbackParam = encodeURIComponent('/api/auth/mobile-callback')
+        await openAuthUrl(`https://pawzrpro.vercel.app/api/auth/signin?callbackUrl=${callbackParam}`)
       } else {
         // Use standard NextAuth flow for web
         signIn('google', { callbackUrl: '/onboarding' })

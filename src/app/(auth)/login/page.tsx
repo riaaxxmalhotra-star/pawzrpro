@@ -44,12 +44,11 @@ function LoginForm() {
     setError(null)
 
     try {
-      // Check if we're on a native platform
       if (isNativePlatform()) {
-        // Open NextAuth signin in Safari browser
-        const baseUrl = 'https://pawzrpro.vercel.app'
-        const mobileCallback = encodeURIComponent(`${baseUrl}/api/auth/mobile-callback`)
-        await openAuthUrl(`${baseUrl}/api/auth/signin?callbackUrl=${mobileCallback}`)
+        // For mobile: open NextAuth signin page in Safari
+        // User clicks Google button there, which handles OAuth properly
+        const callbackParam = encodeURIComponent('/api/auth/mobile-callback')
+        await openAuthUrl(`https://pawzrpro.vercel.app/api/auth/signin?callbackUrl=${callbackParam}`)
       } else {
         // Use standard NextAuth flow for web
         await signIn('google', {
