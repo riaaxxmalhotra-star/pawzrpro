@@ -14,14 +14,7 @@ const config: CapacitorConfig = {
     allowsLinkPreview: false,
     scrollEnabled: true
   },
-  plugins: {
-    SocialLogin: {
-      google: {
-        iOSClientId: '1094158533320-7fugh8bijpp1770uo21b0ubf8f36odp1.apps.googleusercontent.com',
-        iOSServerClientId: '1094158533320-aumh0qgrr06o0o17umlulthgj3m72dlq.apps.googleusercontent.com'
-      }
-    }
-  }
+  plugins: {}
 };
 
 export default config;
