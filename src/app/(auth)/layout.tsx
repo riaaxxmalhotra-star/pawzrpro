@@ -6,9 +6,9 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col">
+    <div className="absolute inset-0 bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="py-6 px-4">
+      <header className="flex-shrink-0 py-3 px-4" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
         <div className="container mx-auto">
           <Link href="/" className="text-2xl font-bold text-orange-600">
             🐾 Pawzr
@@ -17,12 +17,14 @@ export default function AuthLayout({
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        {children}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-2 -webkit-overflow-scrolling-touch">
+        <div className="flex items-start justify-center pb-4">
+          {children}
+        </div>
       </main>
 
       {/* Footer */}
-      <footer className="py-6 px-4 text-center text-sm text-gray-500">
+      <footer className="flex-shrink-0 py-3 px-4 text-center text-sm text-gray-500" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
         <p>&copy; {new Date().getFullYear()} Pawzr. All rights reserved.</p>
       </footer>
     </div>

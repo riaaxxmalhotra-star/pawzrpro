@@ -476,19 +476,19 @@ export default function OnboardingPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Species
               </label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {speciesOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => setPet({ ...pet, species: option.value })}
-                    className={`p-3 rounded-lg border-2 text-center transition-all ${
+                    className={`p-2 sm:p-3 rounded-lg border-2 text-center transition-all ${
                       pet.species === option.value
                         ? 'border-orange-500 bg-orange-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <div className="text-2xl mb-1">{option.icon}</div>
+                    <div className="text-xl sm:text-2xl mb-1">{option.icon}</div>
                     <div className="text-xs text-gray-600">{option.label}</div>
                   </button>
                 ))}

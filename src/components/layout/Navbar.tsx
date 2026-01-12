@@ -167,7 +167,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           <input
             type="text"
             placeholder="Search..."
-            className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            className="w-40 md:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
           />
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -205,7 +205,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
           </button>
 
           {isNotificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+            <div className="fixed inset-x-4 top-16 sm:absolute sm:inset-auto sm:right-0 sm:top-auto sm:mt-2 w-auto sm:w-80 md:w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-[70vh] overflow-hidden flex flex-col">
               <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">Notifications</h3>
                 {unreadCount > 0 && (

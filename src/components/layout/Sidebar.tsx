@@ -275,7 +275,7 @@ export function Sidebar({ role, isOpen, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200 transform transition-transform lg:translate-x-0 lg:static lg:z-0',
+          'fixed top-0 left-0 z-50 h-full h-[100dvh] w-[75vw] max-w-64 bg-white border-r border-gray-200 transform transition-transform lg:translate-x-0 lg:static lg:z-0 lg:w-64 lg:max-w-none pt-safe',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >

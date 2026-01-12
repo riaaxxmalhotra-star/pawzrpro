@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { isNativeApp } from '@/lib/native-auth'
+import { Browser } from '@capacitor/browser'
 
 type Step = 'role' | 'signup' | 'already_logged_in'
 
@@ -68,7 +70,7 @@ export default function SignupPage() {
     setError('')
   }
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError('')
 
@@ -77,7 +79,33 @@ export default function SignupPage() {
       localStorage.setItem('pawzr_signup_role', selectedRole)
     }
 
-    signIn('google', { callbackUrl: '/onboarding' })
+    if (isNativeApp()) {
+      // For native app, open OAuth in external browser
+      const baseUrl = 'https://pawzrpro.vercel.app'
+      const authUrl = `${baseUrl}/api/auth/signin/google?callbackUrl=${encodeURIComponent(baseUrl + '/onboarding')}`
+
+      await Browser.open({ url: authUrl, presentationStyle: 'popover' })
+
+      // Add listener for when app resumes
+      const checkSession = setInterval(async () => {
+        const res = await fetch('/api/auth/session')
+        const data = await res.json()
+        if (data?.user) {
+          clearInterval(checkSession)
+          setIsLoading(false)
+          try { await Browser.close() } catch {}
+          router.push('/onboarding')
+        }
+      }, 1000)
+
+      // Stop checking after 2 minutes
+      setTimeout(() => {
+        clearInterval(checkSession)
+        setIsLoading(false)
+      }, 120000)
+    } else {
+      signIn('google', { callbackUrl: '/onboarding' })
+    }
   }
 
   const goBack = () => {

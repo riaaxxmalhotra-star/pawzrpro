@@ -24,17 +24,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="absolute inset-0 bg-gray-50 flex overflow-hidden">
       <Sidebar
         role={session.user.role}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
 
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto overflow-x-hidden -webkit-overflow-scrolling-touch" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
           {children}
         </main>
       </div>

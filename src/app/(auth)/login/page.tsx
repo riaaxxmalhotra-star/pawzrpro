@@ -7,6 +7,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/ui/Loading'
+import { isNativeApp } from '@/lib/native-auth'
+import { Browser } from '@capacitor/browser'
 
 function LoginForm() {
   const searchParams = useSearchParams()
@@ -39,10 +41,37 @@ function LoginForm() {
     }
   }, [errorParam])
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setIsLoading(true)
     setError(null)
-    signIn('google', { callbackUrl })
+
+    if (isNativeApp()) {
+      // For native app, open OAuth in external browser
+      const baseUrl = 'https://pawzrpro.vercel.app'
+      const authUrl = `${baseUrl}/api/auth/signin/google?callbackUrl=${encodeURIComponent(baseUrl + callbackUrl)}`
+
+      await Browser.open({ url: authUrl, presentationStyle: 'popover' })
+
+      // Add listener for when app resumes
+      const checkSession = setInterval(async () => {
+        const res = await fetch('/api/auth/session')
+        const data = await res.json()
+        if (data?.user) {
+          clearInterval(checkSession)
+          setIsLoading(false)
+          try { await Browser.close() } catch {}
+          router.push(callbackUrl)
+        }
+      }, 1000)
+
+      // Stop checking after 2 minutes
+      setTimeout(() => {
+        clearInterval(checkSession)
+        setIsLoading(false)
+      }, 120000)
+    } else {
+      signIn('google', { callbackUrl })
+    }
   }
 
   const handleSignOut = async () => {

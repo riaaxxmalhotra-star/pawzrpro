@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100">
+    <div className="absolute inset-0 bg-gradient-to-b from-amber-50 to-orange-100 overflow-y-auto overflow-x-hidden -webkit-overflow-scrolling-touch">
       {/* Navigation */}
-      <nav className="container mx-auto px-4 py-6 flex items-center justify-between">
+      <nav className="container mx-auto px-4 py-4 flex items-center justify-between" style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}>
         <span className="text-2xl font-bold text-orange-600">🐾 Pawzr</span>
         <div className="flex items-center gap-4">
           <Link href="/login" className="text-gray-600 hover:text-gray-900">
@@ -60,7 +60,7 @@ export default function Home() {
             Join as...
           </h2>
 
-          <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {/* Pet Owner */}
             <Link
               href="/signup"
@@ -139,7 +139,7 @@ export default function Home() {
             What you can do on Pawzr
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             <div className="bg-white rounded-xl p-6 shadow-md">
               <div className="text-3xl mb-3">🔍</div>
               <h3 className="font-semibold text-gray-900 mb-2">Find Services</h3>
@@ -208,7 +208,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-8 mt-16">
+      <footer className="bg-gray-900 text-gray-400 py-8 mt-16" style={{ paddingBottom: 'max(32px, env(safe-area-inset-bottom))' }}>
         <div className="container mx-auto px-4 text-center">
           <p className="text-lg font-semibold text-white mb-2">🐾 Pawzr</p>
           <p className="text-sm">The pet community marketplace</p>
