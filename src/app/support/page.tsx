@@ -15,10 +15,16 @@ export default function Support() {
             We&apos;re here to help! If you have any questions, issues, or feedback about paw.zr,
             please reach out to us.
           </p>
-          <p className="text-gray-700">
+          <p className="text-gray-700 mb-2">
             <strong>Email:</strong>{' '}
-            <a href="mailto:support@pawzr.com" className="text-blue-600 hover:underline">
-              support@pawzr.com
+            <a href="mailto:riaaxxmalhotra@gmail.com" className="text-blue-600 hover:underline">
+              riaaxxmalhotra@gmail.com
+            </a>
+          </p>
+          <p className="text-gray-700">
+            <strong>Phone:</strong>{' '}
+            <a href="tel:+918080000089" className="text-blue-600 hover:underline">
+              +91 8080000089
             </a>
           </p>
         </div>
@@ -75,8 +81,8 @@ export default function Support() {
             <p className="text-gray-700">
               If you&apos;re experiencing technical issues or want to report inappropriate behavior,
               please email us with details at{' '}
-              <a href="mailto:support@pawzr.com" className="text-blue-600 hover:underline">
-                support@pawzr.com
+              <a href="mailto:riaaxxmalhotra@gmail.com" className="text-blue-600 hover:underline">
+                riaaxxmalhotra@gmail.com
               </a>
             </p>
           </section>

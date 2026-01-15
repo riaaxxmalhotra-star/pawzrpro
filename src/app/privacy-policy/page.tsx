@@ -125,7 +125,8 @@ export default function PrivacyPolicy() {
               If you have questions about this Privacy Policy, please contact us at:
             </p>
             <p className="text-gray-700">
-              Email: support@pawzr.com<br />
+              Email: riaaxxmalhotra@gmail.com<br />
+              Phone: +91 8080000089<br />
               App: paw.zr
             </p>
           </section>
