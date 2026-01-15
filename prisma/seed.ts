@@ -399,6 +399,41 @@ async function main() {
     console.log('✅ Created bookings and review for Test accounts');
   }
 
+  // Create conversation between Test Pet Owner and Test Pet Lover
+  const testConversation = await prisma.conversation.create({
+    data: {
+      participants: {
+        create: [
+          { userId: testPetOwner.id },
+          { userId: testPetLover.id }
+        ]
+      }
+    }
+  });
+
+  // Add messages to the conversation
+  const conversationMessages = [
+    { senderId: testPetOwner.id, content: 'Hi Amit! I saw your profile and you seem great with dogs. I have a Golden Retriever named Max who needs regular walks.', createdAt: new Date('2026-01-08T10:00:00') },
+    { senderId: testPetLover.id, content: 'Hello Sarah! Thanks for reaching out. I\'d love to help with Max! Golden Retrievers are wonderful - how old is he?', createdAt: new Date('2026-01-08T10:05:00') },
+    { senderId: testPetOwner.id, content: 'He\'s 3 years old, very friendly and loves playing fetch. He needs about 30 mins of walking daily.', createdAt: new Date('2026-01-08T10:10:00') },
+    { senderId: testPetLover.id, content: 'Perfect! I have experience with retrievers and can definitely include some fetch time during walks. Would mornings work for you?', createdAt: new Date('2026-01-08T10:15:00') },
+    { senderId: testPetOwner.id, content: 'Mornings would be great! Can we start with a trial walk this week?', createdAt: new Date('2026-01-08T10:20:00') },
+    { senderId: testPetLover.id, content: 'Absolutely! I\'ve just accepted your booking for January 20th at 10 AM. Looking forward to meeting Max! 🐕', createdAt: new Date('2026-01-08T10:25:00') },
+  ];
+
+  for (const msg of conversationMessages) {
+    await prisma.message.create({
+      data: {
+        conversationId: testConversation.id,
+        senderId: msg.senderId,
+        content: msg.content,
+        createdAt: msg.createdAt,
+        read: true
+      }
+    });
+  }
+  console.log('✅ Created conversation with messages for Test accounts');
+
   // Create demo pets
   await prisma.pet.createMany({
     data: [
